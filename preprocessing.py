@@ -143,4 +143,4 @@ if __name__ == "__main__":
     output_directory = "output"
 
     # Resize images and calculate statistics
-    resize_images(input_directory, output_directory)
+    preprocess_images(input_directory, output_directory)
