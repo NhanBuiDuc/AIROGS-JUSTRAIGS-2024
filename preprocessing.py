@@ -76,7 +76,7 @@ def preprocess_images(input_dir, output_dir, target_size=(256, 256), hflip=True,
         input_path = os.path.join(input_dir, file)
         output_path = os.path.join(output_dir, file)
         # Open the image
-        image = Image.open(input_path)
+        image = Image.open(fp=input_path, mode='RGB')
         # Get original width and height
         width, height = image.size
         # Update max and min values
@@ -110,7 +110,7 @@ def preprocess_images(input_dir, output_dir, target_size=(256, 256), hflip=True,
 
         # Apply noise (if enabled)
         if noise_variance > 0:
-            noise = Image.new(color='RGB', size=image.size)
+            noise = Image.new(mode="RGB", size=image.size)
             for _ in range(int(noise_variance)):
                 noise.putpixel(
                     (random.randint(0, image.width - 1),
@@ -135,7 +135,6 @@ def preprocess_images(input_dir, output_dir, target_size=(256, 256), hflip=True,
     print("Minimum Height:", min_height)
     print("Average Width:", average_width)
     print("Average Height:", average_height)
-
 
     # Put raw image directory into this and generate this before training
 if __name__ == "__main__":
