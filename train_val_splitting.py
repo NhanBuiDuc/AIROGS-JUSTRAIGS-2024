@@ -100,8 +100,8 @@ for random_seed in random_seed_list:
             [val_selected_nrg_data, val_rg_input_data])
         # Assuming train_combined_nrg_input_data and val_combined_nrg_input_data are your DataFrames
         train_output_dir = os.path.join(
-            output_dir, f"train_seed{random_seed}_kfold_{k}.csv")
+            output_dir, f"fold_{k}", f"train_seed{random_seed}_kfold_{k}.csv")
         val_output_dir = os.path.join(
-            output_dir, f"val_seed{random_seed}_kfold_{k}.csv")
+            output_dir, f"fold_{k}", f"val_seed{random_seed}_kfold_{k}.csv")
         train_combined_input_data.to_csv(train_output_dir)
         val_combined_input_data.to_csv(val_output_dir)
