@@ -17,16 +17,14 @@ class trainer_base():
         self,
         data_dir: str = "data/",
         train_val_test_split: Tuple[int, int, int] = (0.8, 0.2),
-        image_size: int = 512,
+        image_size: int = 256,
         num_class: int = 2,
         class_name: list = ["NRG", "RG"],
-        kfold_seed: int = 111,
+        kfold_seed: int = 42,
         kfold_index: int = 0,
         batch_size: int = 16,
         num_workers: int = 0,
         is_transform=True,
-        balance_data=True,
-        binary_unbalance_train_ratio=100
     ) -> None:
         torch.backends.bottleneck = True
         train_trans = transforms.Compose(
@@ -71,21 +69,14 @@ class trainer_base():
         self.validation_split = train_val_test_split[1]
         self.is_transform = is_transform
         self.num_workers = num_workers
-        self.balance_data = balance_data
         self.train_image_path = os.path.join(
-            self.data_dir, "ISBI_2024/resize_512_images/")
+            self.data_dir, "ISBI_2024/preprocessed_images/")
         self.train_gt_path = os.path.join(
             self.data_dir, "ISBI_2024", "JustRAIGS_Train_labels.csv")
-        self.geo_aug_images = os.path.join(
-            self.data_dir, "ISBI_2024", "geo_aug_images")
-        self.color_aug_images = os.path.join(
-            self.data_dir, "ISBI_2024", "color_aug_images")
 
         self.train_gt_path = self.train_gt_path.replace("\\", "/")
 
-        self.binary_unbalance_train_ratio = binary_unbalance_train_ratio
-        self.prepare_data()
-        self.setup()
+        self.prepare_data(kfold_index, kfold_seed)
 
     def epoch_loop(self):
         pass
@@ -99,185 +90,26 @@ class trainer_base():
     def test(self):
         pass
 
-    def prepare_data(self) -> None:
-        # Load the CSV file into a pandas DataFrame
-        self.train_gt_pdf = pd.read_csv(self.train_gt_path, delimiter=';')
-        # self.train_gt_pdf = self.train_gt_pdf[:100]
-        self.train_image_name = self.train_gt_pdf["Eye ID"]
-        self.train_label_list = self.train_gt_pdf.iloc[:, 1:].apply(
-            lambda row: {col.lower(): row[col] for col in self.train_gt_pdf.columns[1:]}, axis=1).tolist()
-
-        self.class_distribution = self.calculate_class_distribution()
-        # # Calculate the number of samples for each split
-        self.total_samples = int(sum(self.class_distribution.values()))
-
-    def setup(self) -> None:
-
-        if not self.data_train and not self.data_val:
-            if not self.balance_data:
-                input_data = self.train_gt_pdf['Eye ID']
-                labels = self.train_gt_pdf['Final Label']
-                # Map class labels to numerical values
-                class_to_numeric = {class_label: idx for idx,
-                                    class_label in enumerate(self.class_name)}
-
-                # Transform labels into numerical format (0 or 1)
-                labels_numeric = [class_to_numeric[label] for label in labels]
-                labels_numeric = np.array(labels_numeric)
-                # Choose fold to train on
-                kf = KFold(n_splits=5,
-                           shuffle=True, random_state=self.kfold_seed)
-
-                all_splits = [k for k in kf.split(input_data, labels_numeric)]
-
-                train_indexes, val_indexes = all_splits[self.kfold_index]
-
-                # Count the number of samples in class 1 in the training set
-                train_input_data = input_data[train_indexes]
-                train_label_data = labels_numeric[train_indexes]
-
-                val_input_data = input_data[val_indexes]
-                val_label_data = labels_numeric[val_indexes]
-
-                train_class_counts = np.bincount(train_label_data)
-                val_class_counts = np.bincount(val_label_data)
-
-                print("train/class_zeros_count: ", train_class_counts[0])
-                print("train/class_ones_count: ", train_class_counts[1])
-                print("val/class_zeros_count: ",
-                      val_class_counts[0])
-                print("val/class_ones_count: ", val_class_counts[1])
-
-                # # Calculate class weights
-                # train_class_weights = 1. / \
-                #     torch.tensor(train_class_counts, dtype=torch.float)
-                # # Map class labels to indices
-                # train_class_to_index = {
-                #     self.class_name[i]: i for i in range(len(self.class_name))}
-
-                # train_label_indices = [train_class_to_index[label]
-                #                        for label in train_label_data]
-
-                # # Assign weights to each sample in the validation set
-                # train_weights = train_class_weights[train_label_indices]
-
-                # Assuming you have WeightedRandomSampler, you can use it like this:
-                self.weighted_sampler_train = WeightedRandomSampler(
-                    weights=[(0.8*self.batch_size) // 100,
-                             (0.2*self.batch_size) // 100],
-                    num_samples=len(train_label_data),
-                    replacement=False
-                )
-
-                # Calculate class weights
-                # val_class_weights = 1. / \
-                #     torch.tensor(val_class_counts, dtype=torch.float)
-
-                # Assuming you have WeightedRandomSampler, you can use it like this:
-                self.weighted_sampler_val = WeightedRandomSampler(
-                    weights=[(0.8*self.batch_size) // 100,
-                             (0.2*self.batch_size) // 100],
-                    num_samples=len(val_label_data),
-                    replacement=False
-                )
-
-                self.data_train = Airogs_Dataset(
-                    combined_train_data, combined_label_data, self.class_name, len(combined_train_data), self.data_dir, self.train_image_path, self.is_transform, self.train_transforms, self.val_transforms, is_training=True, image_size=self.image_size)
-
-                self.data_val = Airogs_Dataset(
-                    val_input_data.tolist(), val_label_data.tolist(), self.class_name, len(val_input_data), self.data_dir, self.train_image_path, self.is_transform, self.train_transforms, self.val_transforms, is_training=False, image_size=self.image_size)
-            else:
-                if self.balance_data:
-                    input_data = self.train_gt_pdf['Eye ID']
-                    labels = self.train_gt_pdf['Final Label']
-                    # Map class labels to numerical values
-                    class_to_numeric = {class_label: idx for idx,
-                                        class_label in enumerate(self.class_name)}
-
-                    # Transform labels into numerical format (0 or 1)
-                    labels_numeric = [class_to_numeric[label]
-                                      for label in labels]
-                    labels_numeric = np.array(labels_numeric)
-                    # Choose fold to train on
-                    kf = KFold(n_splits=5,
-                               shuffle=True, random_state=self.kfold_seed)
-
-                    all_splits = [k for k in kf.split(
-                        input_data, labels_numeric)]
-
-                    train_indexes, val_indexes = all_splits[self.kfold_index]
-
-                    # Count the number of samples in class 1 in the training set
-                    train_input_data = input_data[train_indexes]
-                    train_label_data = labels_numeric[train_indexes]
-
-                    val_input_data = input_data[val_indexes]
-                    val_label_data = labels_numeric[val_indexes]
-
-                    train_class_counts = np.bincount(train_label_data)
-                    val_class_counts = np.bincount(val_label_data)
-
-                    print("original_train/class_zeros_count: ",
-                          train_class_counts[0])
-                    print("original_train/class_ones_count: ",
-                          train_class_counts[1])
-                    print("original_val/class_zeros_count: ",
-                          val_class_counts[0])
-                    print("original_val/class_ones_count: ",
-                          val_class_counts[1])
-
-                    # # Calculate class weights
-                    # train_class_weights = 1. / \
-                    #     torch.tensor(train_class_counts, dtype=torch.float)
-                    # # Map class labels to indices
-                    # train_class_to_index = {
-                    #     self.class_name[i]: i for i in range(len(self.class_name))}
-
-                    # train_label_indices = [train_class_to_index[label]
-                    #                        for label in train_label_data]
-
-                    # # Assign weights to each sample in the validation set
-                    # train_weights = train_class_weights[train_label_indices]
-
-                    # Assuming you have WeightedRandomSampler, you can use it like this:
-                    self.weighted_sampler_train = WeightedRandomSampler(
-                        weights=[(0.8*self.batch_size) // 100,
-                                 (0.2*self.batch_size) // 100],
-                        num_samples=len(train_label_data),
-                        replacement=False
-                    )
-
-                    # Calculate class weights
-                    # val_class_weights = 1. / \
-                    #     torch.tensor(val_class_counts, dtype=torch.float)
-
-                    # Assuming you have WeightedRandomSampler, you can use it like this:
-                    self.weighted_sampler_val = WeightedRandomSampler(
-                        weights=[(0.8*self.batch_size) // 100,
-                                 (0.2*self.batch_size) // 100],
-                        num_samples=len(val_label_data),
-                        replacement=False
-                    )
-                    original_train_input_data = train_input_data.tolist()
-                    original_train_label_data = train_label_data.tolist()
-
-                    geo_images = [f for f in os.listdir(
-                        self.geo_aug_images) if f.lower().endswith(('.jpg', '.jpeg', '.png'))]
-
-                    color_images = [f for f in os.listdir(
-                        self.color_aug_images) if f.lower().endswith(('.jpg', '.jpeg', '.png'))]
-
-                    combined_train_data = original_train_input_data + geo_images + color_images
-
-                    # Assuming label_data is all 1 for the length of the new images
-                    combined_label_data = original_train_label_data + \
-                        [1] * (len(geo_images) + len(color_images))
-
-                    print("augmented_train/class_ones_count: ",
-                          train_class_counts[1] + len(geo_images) + len(color_images))
-
-                    self.data_train = Airogs_Dataset(
-                        combined_train_data, combined_label_data, self.class_name, len(combined_train_data), self.data_dir, self.train_image_path, self.is_transform, self.train_transforms, self.val_transforms, is_training=True, image_size=self.image_size)
-
-                    self.data_val = Airogs_Dataset(
-                        val_input_data.tolist(), val_label_data.tolist(), self.class_name, len(val_input_data), self.data_dir, self.train_image_path, self.is_transform, self.train_transforms, self.val_transforms, is_training=False, image_size=self.image_size)
+    def prepare_data(self, kfold_index, kfold_seed) -> None:
+        if (kfold_index == 0):
+            kfold_dir = os.path.join(
+                self.data_dir, "ISBI_2024/5kfold_split_images/", f"fold_{kfold_index}")
+        elif (kfold_index == 1):
+            kfold_dir = os.path.join(
+                self.data_dir, "ISBI_2024/5kfold_split_images/", f"fold_{kfold_index}")
+        elif (kfold_index == 2):
+            kfold_dir = os.path.join(
+                self.data_dir, "ISBI_2024/5kfold_split_images/", f"fold_{kfold_index}")
+        elif (kfold_index == 3):
+            kfold_dir = os.path.join(
+                self.data_dir, "ISBI_2024/5kfold_split_images/", f"fold_{kfold_index}")
+        elif (kfold_index == 4):
+            kfold_dir = os.path.join(
+                self.data_dir, "ISBI_2024/5kfold_split_images/", f"fold_{kfold_index}")
+        elif (kfold_index == 5):
+            kfold_dir = os.path.join(
+                self.data_dir, "ISBI_2024/5kfold_split_images/", f"fold_{kfold_index}")
+        self.train_format_csv_path = os.path.join(kfold_dir,
+                                                  f"train_seed{kfold_seed}_kfold_{kfold_index}.csv")
+        self.val_format_csv_path = os.path.join(kfold_dir,
+                                                f"seed_seed{kfold_seed}_kfold_{kfold_index}.csv")
