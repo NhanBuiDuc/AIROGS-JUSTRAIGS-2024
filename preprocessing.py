@@ -77,6 +77,8 @@ def preprocess_images(input_dir, output_dir, target_size=(256, 256), hflip=True,
         output_path = os.path.join(output_dir, file)
         # Open the image
         image = Image.open(fp=input_path, mode='r')
+        # Convert RGBA to RGB
+        image = image.convert('RGB')
         # Get original width and height
         width, height = image.size
         # Update max and min values
