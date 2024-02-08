@@ -61,29 +61,39 @@ for random_seed in random_seed_list:
 
         color_images = [f for f in os.listdir(
             color_aug_images) if f.lower().endswith(('.jpg', '.jpeg', '.png'))]
-
-        train_nrg_index = image_path_and_label_dataframe.index[image_path_and_label_dataframe['Final Label'] == 'NRG'].tolist(
-        )
-        train_rg_index = image_path_and_label_dataframe.index[image_path_and_label_dataframe['Final Label'] == 'RG'].tolist(
-        )
+        train_dataframe = image_path_and_label_dataframe[train_indexes]
+        val_dataframe = image_path_and_label_dataframe[val_indexes]
+        train_nrg_index = train_dataframe.index[
+            train_dataframe['Final Label'] == 'NRG']
+        train_rg_index = train_dataframe.index[
+            train_dataframe['Final Label'] == 'RG']
+        val_nrg_index = val_dataframe.index[
+            val_dataframe['Final Label'] == 'NRG']
+        val_rg_index = val_dataframe.index[val_dataframe['Final Label'] == 'RG']
 
         train_rg_count = len(train_rg_index.tolist()) + \
             len(geo_images) + len(color_images)
-        print("augmented_train/class_ones_count: ", train_rg_count)
+        val_rg_count = len(val_rg_index.tolist())
+        train_nrg_count = len(train_nrg_index.tolist())
+        val_nrg_count = len(val_nrg_index.tolist())
+        print("train_augmented/class_ones_count: ", train_rg_count)
+        print("train_augmented/class_zeros_count: ", train_nrg_count)
+        print("val_augmented/class_ones_count: ", val_rg_count)
+        print("val_augmented/class_zeros_count: ", val_nrg_count)
         # Use random.sample to get train_rg_count random indices from ngr_indices
         train_nrg_selected_indices = random.sample(
             train_nrg_index.tolist(), train_rg_count)
-
+        val_nrg_selected_indices = random.sample(
+            val_nrg_index.tolist(), val_rg_count)
         # Get the corresponding input and label data using the selected indices
-        train_selected_nrg_input_data = train_input_data[train_nrg_selected_indices]
-        train_selected_nrg_label_data = train_label_data[train_nrg_selected_indices]
-        train_rg_input_data = train_input_data[train_nrg_index]
-        train_rg_label_data = train_label_data[train_nrg_index]
-        trained_combined_nrg_input_data = train_selected_nrg_input_data.tolist() + \
-            train_rg_input_data
-        trained_combined_nrg_label_data = train_selected_nrg_label_data.tolist() + \
-            train_rg_label_data
-
+        train_selected_nrg_data = train_dataframe[train_nrg_selected_indices]
+        val_selected_nrg_data = val_dataframe[val_nrg_selected_indices]
+        train_rg_input_data = train_dataframe[train_rg_index]
+        val_rg_input_data = val_dataframe[val_rg_index]
+        train_combined_nrg_input_data = pd.concat(
+            [train_selected_nrg_data, train_rg_input_data], ignore_index=True)
+        val_combined_nrg_input_data = pd.concat(
+            [val_selected_nrg_data, val_rg_input_data], ignore_index=True)
 # rg_df = [class_to_numeric[rg]
 #          for rg in nrg_df]
 # images = []
