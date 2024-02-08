@@ -19,16 +19,20 @@ output_dir = os.path.join(
     data_dir, "AIROGS_2024", "5kflod_split_images")
 image_path_and_label_dataframe = pd.read_csv(train_gt_path, delimiter=';')
 
-input_paths = image_path_and_label_dataframe['Eye ID']
-labels = image_path_and_label_dataframe['Final Label']
+# Assuming you have 'Eye ID' and 'Final Label' columns in the DataFrame
+image_path_and_label_dataframe = image_path_and_label_dataframe[[
+    'Eye ID', 'Final Label']]
 class_name = ["NRG", "RG"]
 class_to_numeric = {class_label: idx for idx,
                     class_label in enumerate(class_name)}
 # numeric_labels = [class_to_numeric[label]
 #                   for label in labels]
 # Split DataFrame into two based on the 'Column_Name' values
-nrg_index = labels.index[labels == 'NRG'].tolist()
-rg_index = labels.index[labels == 'RG'].tolist()
+nrg_index = image_path_and_label_dataframe.index[image_path_and_label_dataframe['Final Label'] == 'NRG'].tolist(
+)
+
+rg_index = image_path_and_label_dataframe.index[image_path_and_label_dataframe['Final Label'] == 'RG'].tolist(
+)
 
 nrg_count = len(nrg_index)
 rg_count = len(rg_index)
@@ -45,15 +49,12 @@ for random_seed in random_seed_list:
         kf = KFold(n_splits=5,
                    shuffle=True, random_state=random_seed)
         random.seed(random_seed)  # Set the random seed
+        input_paths = image_path_and_label_dataframe["Eye ID"]
+        labels = image_path_and_label_dataframe["Final Label"]
         all_splits = [k for k in kf.split(
             input_paths, labels)]
 
         train_indexes, val_indexes = all_splits[k]
-        train_input_data = input_paths[train_indexes]
-        train_label_data = labels[train_indexes]
-
-        val_input_data = input_paths[val_indexes]
-        val_label_data = labels[val_indexes]
 
         geo_images = [f for f in os.listdir(
             geo_aug_images) if f.lower().endswith(('.jpg', '.jpeg', '.png'))]
@@ -61,9 +62,11 @@ for random_seed in random_seed_list:
         color_images = [f for f in os.listdir(
             color_aug_images) if f.lower().endswith(('.jpg', '.jpeg', '.png'))]
 
-        train_rg_index = train_label_data.index[train_indexes == 'RG'].tolist()
-        train_nrg_index = train_label_data.index[train_indexes == 'NRG'].tolist(
+        train_nrg_index = image_path_and_label_dataframe.index[image_path_and_label_dataframe['Final Label'] == 'NRG'].tolist(
         )
+        train_rg_index = image_path_and_label_dataframe.index[image_path_and_label_dataframe['Final Label'] == 'RG'].tolist(
+        )
+
         train_rg_count = len(train_rg_index.tolist()) + \
             len(geo_images) + len(color_images)
         print("augmented_train/class_ones_count: ", train_rg_count)
