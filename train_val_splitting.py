@@ -41,10 +41,10 @@ print("All RG samples: ", rg_count)
 # rg_count = len(rg_index)
 for random_seed in random_seed_list:
     for k in range(0, 5):
-        random.seed(random_seed)  # Set the random seed
+
         kf = KFold(n_splits=5,
                    shuffle=True, random_state=random_seed)
-
+        random.seed(random_seed)  # Set the random seed
         all_splits = [k for k in kf.split(
             input_paths, labels)]
 
