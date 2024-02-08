@@ -27,7 +27,7 @@ labels_numeric = np.array(labels_numeric)
 
 # Output directories for augmented images
 geo_directory = os.path.join(
-    ".data", "AIROGS_2024", "geo_aug_images")
+    "data", "AIROGS_2024", "geo_aug_images")
 color_directory = os.path.join(
     "data", "AIROGS_2024", "color_aug_images")
 
