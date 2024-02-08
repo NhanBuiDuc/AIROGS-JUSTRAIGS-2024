@@ -31,7 +31,7 @@ class Airogs_Dataset(Dataset):
         if ("color") in self.data[index]:
             # Attempt to open the image with .jpg extension
             image_path = os.path.join(
-                self.data_dir,  "ISBI_2024", "color_aug_images", image_name)
+                self.data_dir,  "AIROGS_2024", "color_aug_images", image_name)
             # Replacing backslashes with forward slashes
             image_path = image_path.replace("\\", "/")
             image = Image.open(image_path).convert('RGB')  # Adjust as needed
@@ -39,7 +39,7 @@ class Airogs_Dataset(Dataset):
         elif "geo" in image_name:
             # Attempt to open the image with .jpg extension
             image_path = os.path.join(
-                self.data_dir, "ISBI_2024",  "geo_aug_images", image_name)
+                self.data_dir, "AIROGS_2024",  "geo_aug_images", image_name)
             # Replacing backslashes with forward slashes
             image_path = image_path.replace("\\", "/")
             image = Image.open(image_path).convert('RGB')  # Adjust as needed

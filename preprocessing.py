@@ -141,8 +141,8 @@ def preprocess_images(input_dir, output_dir, target_size=(256, 256), hflip=True,
     # Put raw image directory into this and generate this before training
 if __name__ == "__main__":
     # Specify your input and output directories
-    input_directory = "data/ISBI_2024/images/"
-    output_directory = "data/ISBI_2024/preprocessed_images/"
+    input_directory = "data/AIROGS_2024/images/"
+    output_directory = "data/AIROGS_2024/preprocessed_images/"
 
     # Resize images and calculate statistics
     preprocess_images(input_directory, output_directory)
