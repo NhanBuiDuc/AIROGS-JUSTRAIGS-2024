@@ -52,7 +52,7 @@ for random_seed in random_seed_list:
         input_paths = image_path_and_label_dataframe["Eye ID"]
         labels = image_path_and_label_dataframe["Final Label"]
         all_splits = [k for k in kf.split(
-            input_paths, labels)]
+            input_paths.tolist(), labels.tolist())]
 
         train_indexes, val_indexes = all_splits[k]
 
