@@ -17,6 +17,9 @@ color_aug_images = os.path.join(
     data_dir, "AIROGS_2024", "color_aug_images")
 output_dir = os.path.join(
     data_dir, "AIROGS_2024", "5kfold_split_images")
+# Create the directory if it does not exist
+if not os.path.exists(output_dir):
+    os.makedirs(output_dir)
 image_path_and_label_dataframe = pd.read_csv(train_gt_path, delimiter=';')
 
 # Assuming you have 'Eye ID' and 'Final Label' columns in the DataFrame
