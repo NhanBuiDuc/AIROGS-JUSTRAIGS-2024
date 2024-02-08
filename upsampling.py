@@ -7,9 +7,9 @@ import torchvision.transforms as transforms
 
 class_name = ["NRG", "RG"]
 train_image_path = os.path.join(
-    "./data/", "ISBI_2024/preprocessed_images/")
+    "./data/", "AIROGS_2024/preprocessed_images/")
 train_gt_path = os.path.join(
-    "./data/", "ISBI_2024", "JustRAIGS_Train_labels.csv")
+    "./data/", "AIROGS_2024", "JustRAIGS_Train_labels.csv")
 
 train_gt_pdf = pd.read_csv(train_gt_path, delimiter=';')
 
@@ -27,9 +27,9 @@ labels_numeric = np.array(labels_numeric)
 
 # Output directories for augmented images
 geo_directory = os.path.join(
-    ".data", "ISBI_2024", "geo_aug_images")
+    ".data", "AIROGS_2024", "geo_aug_images")
 color_directory = os.path.join(
-    "data", "ISBI_2024", "color_aug_images")
+    "data", "AIROGS_2024", "color_aug_images")
 
 # Create the output directories if they don't exist
 os.makedirs(geo_directory, exist_ok=True)
