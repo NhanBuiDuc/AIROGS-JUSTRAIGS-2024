@@ -48,7 +48,7 @@ print("All RG samples: ", rg_count)
 # rg_count = len(rg_index)
 for random_seed in random_seed_list:
     for k in range(0, 5):
-        print("SEED: ", random_seed, " K: ", random_seed_list)
+        print("SEED: ", random_seed, " K: ", k)
         kf = KFold(n_splits=5,
                    shuffle=True, random_state=random_seed)
         random.seed(random_seed)  # Set the random seed
