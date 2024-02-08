@@ -61,8 +61,8 @@ for random_seed in random_seed_list:
 
         color_images = [f for f in os.listdir(
             color_aug_images) if f.lower().endswith(('.jpg', '.jpeg', '.png'))]
-        train_dataframe = image_path_and_label_dataframe[train_indexes]
-        val_dataframe = image_path_and_label_dataframe[val_indexes]
+        train_dataframe = image_path_and_label_dataframe.iloc[train_indexes, :]
+        val_dataframe = image_path_and_label_dataframe.iloc[train_indexes, :]
         train_nrg_index = train_dataframe.index[
             train_dataframe['Final Label'] == 'NRG']
         train_rg_index = train_dataframe.index[
@@ -86,12 +86,10 @@ for random_seed in random_seed_list:
         val_nrg_selected_indices = random.sample(
             val_nrg_index.tolist(), val_rg_count)
         # Get the corresponding input and label data using the selected indices
-        train_selected_nrg_data = train_dataframe[train_nrg_selected_indices.tolist(
-        )]
-        val_selected_nrg_data = val_dataframe[val_nrg_selected_indices.tolist(
-        )]
-        train_rg_input_data = train_dataframe[train_rg_index.tolist()]
-        val_rg_input_data = val_dataframe[val_rg_index.tolist()]
+        train_selected_nrg_data = train_dataframe.iloc[train_nrg_selected_indices, :]
+        val_selected_nrg_data = val_dataframe.iloc[val_nrg_selected_indices, :]
+        train_rg_input_data = train_dataframe.iloc[train_rg_index, :]
+        val_rg_input_data = val_dataframe.iloc[val_rg_index, :]
         train_combined_nrg_input_data = pd.concat(
             [train_selected_nrg_data, train_rg_input_data], ignore_index=True)
         val_combined_nrg_input_data = pd.concat(
