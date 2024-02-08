@@ -61,8 +61,9 @@ for random_seed in random_seed_list:
         color_images = [f for f in os.listdir(
             color_aug_images) if f.lower().endswith(('.jpg', '.jpeg', '.png'))]
 
-        train_rg_index = train_input_data.index[train_indexes == 'RG']
-        train_nrg_index = train_input_data.index[train_indexes == 'NRG']
+        train_rg_index = train_label_data.index[train_indexes == 'RG'].tolist()
+        train_nrg_index = train_label_data.index[train_indexes == 'NRG'].tolist(
+        )
         train_rg_count = len(train_rg_index.tolist()) + \
             len(geo_images) + len(color_images)
         print("augmented_train/class_ones_count: ", train_rg_count)
