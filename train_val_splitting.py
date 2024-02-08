@@ -5,7 +5,7 @@ from sklearn.model_selection import KFold
 import random
 import numpy as np
 
-random_seed_list = ["42", "52", "62", "72", "82",]
+random_seed_list = [42, 52, 62, 72, 82,]
 data_dir = "./data/"
 train_image_path = os.path.join(
     data_dir, "AIROGS_2024", "preprocessed_images")
