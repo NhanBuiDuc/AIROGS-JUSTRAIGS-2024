@@ -65,7 +65,7 @@ for random_seed in random_seed_list:
         color_images = [f for f in os.listdir(
             color_aug_images) if f.lower().endswith(('.jpg', '.jpeg', '.png'))]
         train_dataframe = image_path_and_label_dataframe.iloc[train_indexes, :]
-        val_dataframe = image_path_and_label_dataframe.iloc[train_indexes, :]
+        val_dataframe = image_path_and_label_dataframe.iloc[val_indexes, :]
         train_nrg_index = train_dataframe.index[
             train_dataframe['Final Label'] == 'NRG']
         train_rg_index = train_dataframe.index[
@@ -80,9 +80,9 @@ for random_seed in random_seed_list:
         train_nrg_count = len(train_nrg_index.tolist())
         val_nrg_count = len(val_nrg_index.tolist())
         print("train_augmented/class_ones_count: ", train_rg_count)
-        print("train_augmented/class_zeros_count: ", train_nrg_count)
-        print("val_augmented/class_ones_count: ", val_rg_count)
-        print("val_augmented/class_zeros_count: ", val_nrg_count)
+        print("train/class_zeros_count: ", train_nrg_count)
+        print("val/class_ones_count: ", val_rg_count)
+        print("val/class_zeros_count: ", val_nrg_count)
         # Use random.sample to get train_rg_count random indices from ngr_indices
         train_nrg_selected_indices = random.sample(
             train_nrg_index.tolist(), train_rg_count)
