@@ -1,3 +1,4 @@
 ./ISBI_2024/*
 ./ISBI_2024/images/*
 data/ISBI_2024/images/*
+data/ISBI_2024/preprocessed_images/*

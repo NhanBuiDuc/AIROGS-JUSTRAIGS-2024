@@ -75,6 +75,8 @@ def preprocess_images(input_dir, output_dir, target_size=(256, 256), hflip=True,
     for file in files:
         input_path = os.path.join(input_dir, file)
         output_path = os.path.join(output_dir, file)
+        # Open the image
+        image = Image.open(input_path)
         # Get original width and height
         width, height = image.size
         # Update max and min values
@@ -86,9 +88,6 @@ def preprocess_images(input_dir, output_dir, target_size=(256, 256), hflip=True,
         # Update total width and height
         total_width += width
         total_height += height
-
-        # Open the image
-        image = Image.open(input_path)
 
         # Apply horizontal flip
         if hflip and random.choice([True, False]):
@@ -111,10 +110,12 @@ def preprocess_images(input_dir, output_dir, target_size=(256, 256), hflip=True,
 
         # Apply noise (if enabled)
         if noise_variance > 0:
-            noise = Image.new('L', image.size)
+            noise = Image.new('RGB', image.size)
             for _ in range(int(noise_variance)):
                 noise.putpixel(
-                    (random.randint(0, image.width - 1), random.randint(0, image.height - 1)), 255)
+                    (random.randint(0, image.width - 1),
+                     random.randint(0, image.height - 1)),
+                    (255, 255, 255))  # Use (255, 255, 255) for white pixels
             image = Image.blend(image, noise, noise_variance / 255)
 
         # Resize the image
@@ -139,8 +140,8 @@ def preprocess_images(input_dir, output_dir, target_size=(256, 256), hflip=True,
     # Put raw image directory into this and generate this before training
 if __name__ == "__main__":
     # Specify your input and output directories
-    input_directory = "ISBI_2024/images/"
-    output_directory = "output"
+    input_directory = "data/ISBI_2024/images/"
+    output_directory = "data/ISBI_2024/preprocessed_images/"
 
     # Resize images and calculate statistics
     preprocess_images(input_directory, output_directory)
