@@ -87,10 +87,12 @@ for random_seed in random_seed_list:
         val_nrg_selected_indices = random.sample(
             val_nrg_index.tolist(), val_rg_count)
         # Get the corresponding input and label data using the selected indices
-        train_selected_nrg_data = train_dataframe[train_nrg_selected_indices]
-        val_selected_nrg_data = val_dataframe[val_nrg_selected_indices]
-        train_rg_input_data = train_dataframe[train_rg_index]
-        val_rg_input_data = val_dataframe[val_rg_index]
+        train_selected_nrg_data = train_dataframe[train_nrg_selected_indices.tolist(
+        )]
+        val_selected_nrg_data = val_dataframe[val_nrg_selected_indices.tolist(
+        )]
+        train_rg_input_data = train_dataframe[train_rg_index.tolist()]
+        val_rg_input_data = val_dataframe[val_rg_index.tolist()]
         train_combined_nrg_input_data = pd.concat(
             [train_selected_nrg_data, train_rg_input_data], ignore_index=True)
         val_combined_nrg_input_data = pd.concat(
