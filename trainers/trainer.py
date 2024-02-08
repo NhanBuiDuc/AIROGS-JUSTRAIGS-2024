@@ -59,7 +59,7 @@ class trainer_base():
         self.data_val: Optional[Dataset] = None
         self.data_test: Optional[Dataset] = None
 
-        self.batch_size_per_device = batch_size
+        self.batch_size_ = batch_size
         self.data_dir = data_dir
         self.image_size = image_size
         self.class_name = class_name
