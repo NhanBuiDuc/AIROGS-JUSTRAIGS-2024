@@ -16,7 +16,7 @@ geo_aug_images = os.path.join(
 color_aug_images = os.path.join(
     data_dir, "AIROGS_2024", "color_aug_images")
 output_dir = os.path.join(
-    data_dir, "AIROGS_2024", "5kflod_split_images")
+    data_dir, "AIROGS_2024", "5kfold_split_images")
 image_path_and_label_dataframe = pd.read_csv(train_gt_path, delimiter=';')
 
 # Assuming you have 'Eye ID' and 'Final Label' columns in the DataFrame
@@ -45,7 +45,7 @@ print("All RG samples: ", rg_count)
 # rg_count = len(rg_index)
 for random_seed in random_seed_list:
     for k in range(0, 5):
-
+        print("SEED: ", random_seed, " K: ", random_seed_list)
         kf = KFold(n_splits=5,
                    shuffle=True, random_state=random_seed)
         random.seed(random_seed)  # Set the random seed
@@ -91,15 +91,14 @@ for random_seed in random_seed_list:
         val_selected_nrg_data = image_path_and_label_dataframe.iloc[val_nrg_selected_indices, :]
         train_rg_input_data = image_path_and_label_dataframe.iloc[train_rg_index, :]
         val_rg_input_data = image_path_and_label_dataframe.iloc[val_rg_index, :]
-        train_combined_nrg_input_data = pd.concat(
-            [train_selected_nrg_data, train_rg_input_data], ignore_index=True)
-        val_combined_nrg_input_data = pd.concat(
-            [val_selected_nrg_data, val_rg_input_data], ignore_index=True)
-# rg_df = [class_to_numeric[rg]
-#          for rg in nrg_df]
-# images = []
-# for path in input_paths:
-#     image = Image.open(fp=path, mode='r')
-#     # Convert RGBA to RGB
-#     image = image.convert('RGB')
-#     images.append(image)
+        train_combined_input_data = pd.concat(
+            [train_selected_nrg_data, train_rg_input_data])
+        val_combined_input_data = pd.concat(
+            [val_selected_nrg_data, val_rg_input_data])
+        # Assuming train_combined_nrg_input_data and val_combined_nrg_input_data are your DataFrames
+        train_output_dir = os.path.join(
+            output_dir, f"train_seed{random_seed}_kfold_{k}.csv")
+        val_output_dir = os.path.join(
+            output_dir, f"val_seed{random_seed}_kfold_{k}.csv")
+        train_combined_input_data.to_csv(train_output_dir)
+        val_combined_input_data.to_csv(val_output_dir)
