@@ -110,7 +110,7 @@ def preprocess_images(input_dir, output_dir, target_size=(256, 256), hflip=True,
 
         # Apply noise (if enabled)
         if noise_variance > 0:
-            noise = Image.new('RGB', image.size)
+            noise = Image.new(color='RGB', size=image.size)
             for _ in range(int(noise_variance)):
                 noise.putpixel(
                     (random.randint(0, image.width - 1),
