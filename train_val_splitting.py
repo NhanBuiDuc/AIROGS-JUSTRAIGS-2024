@@ -61,8 +61,9 @@ for random_seed in random_seed_list:
 
         color_images = [f for f in os.listdir(
             color_aug_images) if f.lower().endswith(('.jpg', '.jpeg', '.png'))]
-        train_dataframe = image_path_and_label_dataframe[train_indexes]
-        val_dataframe = image_path_and_label_dataframe[val_indexes]
+        train_dataframe = image_path_and_label_dataframe[train_indexes.tolist(
+        )]
+        val_dataframe = image_path_and_label_dataframe[val_indexes.tolist()]
         train_nrg_index = train_dataframe.index[
             train_dataframe['Final Label'] == 'NRG']
         train_rg_index = train_dataframe.index[
