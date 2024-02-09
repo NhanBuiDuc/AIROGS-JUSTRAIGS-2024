@@ -107,13 +107,13 @@ class trainer_base():
                 bar.set_description(f"Epoch {epoch}")
 
                 for Xbatch, ybatch in self.train_dataloader:
-                    Xbatch.to(self.device)
-                    ybatch.to(self.device)
+                    Xbatch = Xbatch.to(self.device)
+                    ybatch = ybatch.to(self.device)
                     ybatch = ybatch.view(ybatch.shape[0], 1)
                     # Forward pass
                     y_logits = model(Xbatch)
 
-                    y_logits.to(self.device)
+                    y_logits = y_logits.to(self.device)
 
                     loss = self.loss_fn(y_logits, ybatch)
                     self.train_logits_list.append(Xbatch)
@@ -139,13 +139,13 @@ class trainer_base():
             with torch.no_grad():
                 for Xbatch, ybatch in self.val_dataloader:
 
-                    Xbatch.to(self.device)
-                    ybatch.to(self.device)
+                    Xbatch = Xbatch.to(self.device)
+                    ybatch = ybatch.to(self.device)
                     ybatch = ybatch.view(ybatch.shape[0], 1)
 
                     y_logits = model(Xbatch)
 
-                    y_logits.to(self.device)
+                    y_logits = y_logits.to(self.device)
 
                     loss = self.loss_fn(y_logits, ybatch)
                     self.val_logits_list.append(Xbatch)
