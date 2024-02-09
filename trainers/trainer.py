@@ -76,8 +76,6 @@ class trainer_base():
         self.validation_split = train_val_test_split[1]
         self.is_transform = is_transform
         self.num_workers = num_workers
-        self.train_image_path = os.path.join(
-            self.data_dir, "AIROGS_2024/preprocessed_images/")
         self.train_gt_path = os.path.join(
             self.data_dir, "AIROGS_2024", "JustRAIGS_Train_labels.csv")
 
@@ -322,10 +320,10 @@ class trainer_base():
         self.val_label = self.val_df["Final Label"]
 
         self.train_dataset = Airogs_Dataset(self.train_image_path.tolist(), self.train_label, self.class_name, len(
-            self.train_label), self.data_dir, self.train_image_path, self.is_transform, self.train_transforms, self.val_transforms, True, self.image_size)
+            self.train_label), self.data_dir, kfold_dir, self.is_transform, self.train_transforms, self.val_transforms, True, self.image_size)
 
         self.val_dataset = Airogs_Dataset(self.val_image_path.tolist(), self.val_label, self.class_name, len(
-            self.val_label), self.data_dir, self.train_image_path, self.is_transform, self.train_transforms, self.val_transforms, False, self.image_size)
+            self.val_label), self.data_dir, kfold_dir, self.is_transform, self.train_transforms, self.val_transforms, False, self.image_size)
 
         self.train_dataloader = DataLoader(
             self.train_dataset, batch_size=self.batch_size, shuffle=True)
