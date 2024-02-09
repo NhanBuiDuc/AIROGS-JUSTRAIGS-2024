@@ -1,3 +1,4 @@
+from keras.callbacks import CSVLogger
 from typing import Any, Dict, Optional, Tuple
 
 import torch
@@ -31,7 +32,8 @@ class trainer_base():
         batch_size: int = 16,
         num_workers: int = 0,
         is_transform: bool = True,
-        device: str = "cuda"
+        device: str = "cuda",
+        early_stop_max_patient: int = 7
     ) -> None:
         torch.backends.bottleneck = True
         train_trans = transforms.Compose(
@@ -84,6 +86,8 @@ class trainer_base():
         self.prepare_data(kfold_index, kfold_seed)
         self.loss_fn = torch.nn.BCELoss()
         self.desired_specificity = 0.95
+        self.early_stop_max_patient = early_stop_max_patient
+        self.logger = None
 
     def train_loop_start(self):
         self.train_logits_list = []
@@ -91,6 +95,7 @@ class trainer_base():
         self.val_logits_list = []
         self.val_Y_list = []
         self.val_current_best_sensitivity = 0.0
+        self.patient_count = 0
 
     def train_loop(self):
 
@@ -141,8 +146,9 @@ class trainer_base():
 
                     Xbatch = Xbatch.to(self.device)
                     ybatch = ybatch.to(self.device)
-                    y_logits = m(y_logits)
+
                     y_logits = model(Xbatch)
+                    y_logits = m(y_logits)
                     y_logits = y_logits.squeeze(1)
                     loss = self.loss_fn(y_logits, ybatch)
                     self.val_logits_list.append(y_logits)
@@ -156,7 +162,7 @@ class trainer_base():
             # Print and log the metrics
             print(
                 f"Epoch {epoch + 1}/{self.num_epoch}, Train Loss: {avg_train_loss:.4f}, Train Loss: {avg_val_loss:.2%}")
-        self.train_epoch_end(epoch, avg_train_loss, avg_val_loss)
+            self.train_epoch_end(epoch, avg_train_loss, avg_val_loss)
 
     def train_epoch_end(self, epoch, avg_train_loss, avg_val_loss):
         train_merged_logits = torch.cat(self.train_logits_list, dim=0)
@@ -271,14 +277,27 @@ class trainer_base():
         print("train/precision", train_precision)
         print("val/loss", avg_val_loss)
         print("train/loss", avg_train_loss)
-        early_stop()
-        trigger_scheduler()
-        save_checkpoint()
+        if self.logger is not None:
+            self.logger = CSVLogger(
+                f"logs_seed_{self.kfold_seed}_fold_{self.kfold_index}", separator=",", append=False)
+        is_early_stop = self.early_stop()
+        if not is_early_stop:
+            self.trigger_scheduler()
+            self.save_checkpoint()
+        return is_early_stop
 
-    def early_stop():
+    def early_stop(self):
+        self.patient_count += 1
+        if self.patient_count >= self.early_stop_max_patient:
+            self.save_checkpoint()
+            return True
+        else:
+            return False
+
+    def trigger_scheduler(self):
         pass
 
-    def trigger_scheduler():
+    def save_checkpoint(self):
         pass
 
     def train_loop_end(self):
