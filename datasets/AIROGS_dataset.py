@@ -47,7 +47,7 @@ class Airogs_Dataset(Dataset):
             try:
                 # Attempt to open the image with .jpg extension
                 image_path = os.path.join(
-                    self.data_dir,  self.train_image_path, image_name + ".jpg")
+                    self.train_image_path, image_name + ".jpg")
                 # Replacing backslashes with forward slashes
                 image_path = image_path.replace("\\", "/")
                 image = Image.open(image_path).convert(
@@ -57,7 +57,7 @@ class Airogs_Dataset(Dataset):
                 try:
                     # If the file with .jpg extension is not found, try to open the image with .png extension
                     image_path = os.path.join(
-                        self.data_dir,  self.train_image_path, image_name + ".png")
+                        self.train_image_path, image_name + ".png")
                     # Replacing backslashes with forward slashes
                     image_path = image_path.replace("\\", "/")
                     image = Image.open(image_path).convert(
@@ -67,7 +67,7 @@ class Airogs_Dataset(Dataset):
                     try:
                         # If the file with .jpg extension is not found, try to open the image with .png extension
                         image_path = os.path.join(
-                            self.data_dir,  self.train_image_path, image_name + ".jpeg")
+                            self.train_image_path, image_name + ".jpeg")
                         # Replacing backslashes with forward slashes
                         image_path = image_path.replace("\\", "/")
                         image = Image.open(image_path).convert(
