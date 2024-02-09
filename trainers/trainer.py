@@ -295,7 +295,7 @@ class trainer_base():
 
         train_format_csv_path = train_format_csv_path.replace("\\", "/")
         val_format_csv_path = os.path.join(kfold_dir,
-                                           f"seed_seed{kfold_seed}_kfold_{kfold_index}.csv")
+                                           f"val_seed{kfold_seed}_kfold_{kfold_index}.csv")
         val_format_csv_path = val_format_csv_path.replace("\\", "/")
 
         self.train_df = pd.read_csv(train_format_csv_path, delimiter=",")
