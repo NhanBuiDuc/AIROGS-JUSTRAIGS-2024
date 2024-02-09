@@ -81,7 +81,7 @@ class trainer_base():
         self.train_gt_path = os.path.join(
             self.data_dir, "AIROGS_2024", "JustRAIGS_Train_labels.csv")
 
-        self.train_gt_path = self.train_gt_path.replace("'", """)
+        self.train_gt_path = self.train_gt_path.replace("'", '"')
 
         self.prepare_data(kfold_index, kfold_seed)
         self.loss_fn = torch.nn.BCELoss()
