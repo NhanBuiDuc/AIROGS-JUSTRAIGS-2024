@@ -146,9 +146,9 @@ class trainer_base():
             # Print and log the metrics
             print(
                 f"Epoch {epoch + 1}/{self.num_epoch}, Train Loss: {avg_train_loss:.4f}, Train Loss: {avg_val_loss:.2%}")
-        self.train_epoch_end()
+        self.train_epoch_end(epoch, avg_train_loss, avg_val_loss)
 
-    def train_epoch_end(self):
+    def train_epoch_end(self, epoch, avg_train_loss, avg_val_loss):
         train_merged_logits = torch.cat(self.train_logits_list, dim=0)
         train_merged_gt = torch.cat(self.train_Y_list, dim=0)
         val_merged_logits = torch.cat(self.val_logits_list, dim=0)
@@ -171,7 +171,7 @@ class trainer_base():
         val_threshold_idx = np.argmax(
             val_fpr >= (1 - self.desired_specificity))
         # Get the corresponding threshold
-        train_threshold_at_desired_specificity = train_thresholds[train_threshold_idx]
+        train_threshold = train_thresholds[train_threshold_idx]
         val_threshold = val_thresholds[val_threshold_idx]
         # Get the corresponding TPR (sensitivity)
         train_sensitivity = train_tpr[train_threshold_idx]
@@ -186,7 +186,7 @@ class trainer_base():
 
         # Get the predicted labels based on the threshold
         train_predicted_labels = (
-            train_merged_logits >= train_threshold_at_desired_specificity).astype(int)
+            train_merged_logits >= train_threshold).astype(int)
         val_predicted_labels = (
             val_merged_logits >= val_threshold).astype(int)
         # Compute confusion matrix
@@ -199,69 +199,85 @@ class trainer_base():
             self.best_sensitivity = self.val_current_best_sensitivity
             self.auc_at_best_sensitivity = val_roc_auc
             self.thresh_hold_at_best_sensitivity = val_threshold
-            self.val_sensitivity_best(sensitivity_at_desired_specificity)
-        print("val/sensitivity: ", sensitivity_at_desired_specificity)
-        print("val/roc_auc: ", roc_auc)
-        print("val/threshold: ", threshold_at_desired_specificity)
-        print("val/length: ", len(merged_targets))
-        print("val/target_count_zeros: ", target_count_zeros)
-        print("val/target_count_ones: ", target_count_ones)
-
-        print("val/confusion_matrix: ", conf_matrix)
-        print("val/false_negative: ", conf_matrix[1][0])
-        print("val/true_negative: ", conf_matrix[0][0])
-
-        print("val/false_positive", conf_matrix[0][1])
-        print("val/true_positive", conf_matrix[1][1])
-
-        print("val/pred_count_zeros", pred_count_zeros)
-        print("val/pred_count_ones", pred_count_ones)
+            self.val_current_best_sensitivity = val_sensitivity
 
         # Calculate accuracy
-        accuracy = accuracy_score(targets, predicted_labels)
+        train_accuracy = accuracy_score(
+            train_merged_gt, train_predicted_labels)
 
         # Calculate precision
-        precision = precision_score(targets, predicted_labels)
+        train_precision = precision_score(
+            train_merged_gt, train_predicted_labels)
 
         # Calculate recall
-        recall = recall_score(targets, predicted_labels)
+        train_recall = recall_score(train_merged_gt, train_predicted_labels)
 
         # Calculate F1 score
-        f1 = f1_score(targets, predicted_labels)
+        train_f1 = f1_score(train_merged_gt, train_predicted_labels)
 
-        print("val/sensitivity_best", self.val_sensitivity_best.compute(),
-              on_step=False, on_epoch=True, prog_bar=True,  logger=True)
+        val_accuracy = accuracy_score(val_merged_gt, val_predicted_labels)
+
+        # Calculate precision
+        val_precision = precision_score(val_merged_gt, val_predicted_labels)
+
+        # Calculate recall
+        val_recall = recall_score(val_merged_gt, val_predicted_labels)
+
+        # Calculate F1 score
+        val_f1 = f1_score(val_merged_gt, val_predicted_labels)
+
+        print("val/sensitivity: ", val_sensitivity)
+        print("train/sensitivity: ", train_sensitivity)
+        print("train/roc_auc: ", train_roc_auc)
+        print("val/roc_auc: ", val_roc_auc)
+        print("val/threshold: ", val_threshold)
+        print("train/threshold: ", train_threshold)
+        print("train/target_count_zeros: ", train_target_count_zeros)
+        print("train/target_count_ones: ", train_target_count_ones)
+        print("val/target_count_zeros: ", val_target_count_zeros)
+        print("val/target_count_ones: ", val_target_count_ones)
+        # print("val/pred_count_zeros", pred_count_zeros)
+        # print("val/pred_count_ones", pred_count_ones)
+        print("val/confusion_matrix: ", val_conf_matrix)
+        print("train/confusion_matrix: ", train_conf_matrix)
+        print("train/true_negative: ", train_conf_matrix[0][0])
+        print("train/false_positive", train_conf_matrix[0][1])
+        print("train/false_negative: ", train_conf_matrix[1][0])
+        print("train/true_positive", train_conf_matrix[1][1])
+        print("val/true_negative: ", val_conf_matrix[0][0])
+        print("val/false_positive", val_conf_matrix[0][1])
+        print("val/false_negative: ", val_conf_matrix[1][0])
+        print("val/true_positive", val_conf_matrix[1][1])
+        print("val/sensitivity_best", self.val_current_best_sensitivity)
         print("val/roc_auc_best", self.auc_at_best_sensitivity)
         print("val/thresh_hold_best", self.thresh_hold_at_best_sensitivity)
+        print("val/acc", val_accuracy)
+        print("val/f1", val_f1)
+        print("val/recall", val_recall)
+        print("val/precision", val_precision)
+        print("train/acc", train_accuracy)
+        print("train/f1", train_f1)
+        print("train/recall", train_recall)
+        print("train/precision", train_precision)
+        print("val/loss", avg_val_loss)
+        print("train/loss", avg_train_loss)
+        early_stop()
+        trigger_scheduler()
+        save_checkpoint()
 
-        print("val/acc", accuracy, on_step=False,
-              on_epoch=True, prog_bar=True, logger=True)
-        print("val/f1", f1)
-        print("val/recall", recall)
-        print("val/precision", precision)
+    def early_stop():
+        pass
 
-        print("val/loss", self.val_loss.compute())
+    def trigger_scheduler():
+        pass
 
-        # print("val/acc", self.val_acc.compute(), on_step=False,
-        #          on_epoch=True, prog_bar=True, logger=True)
-        # print("val/f1", self.val_f1.compute(),
-        #          on_step=False, on_epoch=True, prog_bar=True,  logger=True)
-        # print("val/recall", self.val_recall.compute(),
-        #          on_step=False, on_epoch=True, prog_bar=True,  logger=True)
-        # print("val/precision", self.val_precision.compute(),
-        #          on_step=False, on_epoch=True, prog_bar=True,  logger=True)
-        # log `val_acc_best` as a value through `.compute()` method, instead of as a metric object
-        # otherwise metric would be reset by lightning after each epoch
-        # print("val/f1_best", self.val_f1_best.compute(),
-        #          sync_dist=True, prog_bar=True)
-        self.pred_list = []
-        self.target_list = []
-        printits_list = []
+    def train_loop_end(self):
+        self.model.savecheckpoint()
 
     def train(self):
         self.train_loop_start()
         self.train_loop()
-        self.train_loop_end()
+        # self.train_loop_end()
 
     def eval(self):
         pass
@@ -291,11 +307,11 @@ class trainer_base():
 
         kfold_dir = kfold_dir.replace("\\", "/")
         train_format_csv_path = os.path.join(kfold_dir,
-                                             f"train_seed{kfold_seed}_kfold_{kfold_index}.csv")
+                                             f"train_seed_{kfold_seed}_kfold_{kfold_index}.csv")
 
         train_format_csv_path = train_format_csv_path.replace("\\", "/")
         val_format_csv_path = os.path.join(kfold_dir,
-                                           f"val_seed{kfold_seed}_kfold_{kfold_index}.csv")
+                                           f"val_seed_{kfold_seed}_kfold_{kfold_index}.csv")
         val_format_csv_path = val_format_csv_path.replace("\\", "/")
 
         self.train_df = pd.read_csv(train_format_csv_path, delimiter=",")

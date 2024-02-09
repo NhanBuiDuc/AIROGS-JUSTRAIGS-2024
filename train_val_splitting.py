@@ -104,9 +104,9 @@ for random_seed in random_seed_list:
         val_output_dir = os.path.join(
             output_dir, f"fold_{k}")
         train_output_path = os.path.join(
-            train_output_dir, f"train_seed{random_seed}_kfold_{k}.csv")
+            train_output_dir, f"train_seed_{random_seed}_kfold_{k}.csv")
         val_output_path = os.path.join(
-            train_output_dir, f"val_seed{random_seed}_kfold_{k}.csv")
+            train_output_dir, f"val_seed_{random_seed}_kfold_{k}.csv")
         if not os.path.exists(train_output_dir):
             os.makedirs(train_output_dir)
         if not os.path.exists(val_output_dir):
