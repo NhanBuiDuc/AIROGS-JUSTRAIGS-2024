@@ -77,9 +77,9 @@ class trainer_base():
         self.is_transform = is_transform
         self.num_workers = num_workers
         self.train_image_path = os.path.join(
-            self.data_dir, "ISBI_2024/preprocessed_images/")
+            self.data_dir, "AIROGS_2024/preprocessed_images/")
         self.train_gt_path = os.path.join(
-            self.data_dir, "ISBI_2024", "JustRAIGS_Train_labels.csv")
+            self.data_dir, "AIROGS_2024", "JustRAIGS_Train_labels.csv")
 
         self.train_gt_path = self.train_gt_path.replace("\\", "/")
 
@@ -272,22 +272,22 @@ class trainer_base():
     def prepare_data(self, kfold_index, kfold_seed) -> None:
         if (kfold_index == 0):
             kfold_dir = os.path.join(
-                self.data_dir, "ISBI_2024/5kfold_split_images/", f"fold_{kfold_index}")
+                self.data_dir, "AIROGS_2024/5kfold_split_images/", f"fold_{kfold_index}")
         elif (kfold_index == 1):
             kfold_dir = os.path.join(
-                self.data_dir, "ISBI_2024/5kfold_split_images/", f"fold_{kfold_index}")
+                self.data_dir, "AIROGS_2024/5kfold_split_images/", f"fold_{kfold_index}")
         elif (kfold_index == 2):
             kfold_dir = os.path.join(
-                self.data_dir, "ISBI_2024/5kfold_split_images/", f"fold_{kfold_index}")
+                self.data_dir, "AIROGS_2024/5kfold_split_images/", f"fold_{kfold_index}")
         elif (kfold_index == 3):
             kfold_dir = os.path.join(
-                self.data_dir, "ISBI_2024/5kfold_split_images/", f"fold_{kfold_index}")
+                self.data_dir, "AIROGS_2024/5kfold_split_images/", f"fold_{kfold_index}")
         elif (kfold_index == 4):
             kfold_dir = os.path.join(
-                self.data_dir, "ISBI_2024/5kfold_split_images/", f"fold_{kfold_index}")
+                self.data_dir, "AIROGS_2024/5kfold_split_images/", f"fold_{kfold_index}")
         elif (kfold_index == 5):
             kfold_dir = os.path.join(
-                self.data_dir, "ISBI_2024/5kfold_split_images/", f"fold_{kfold_index}")
+                self.data_dir, "AIROGS_2024/5kfold_split_images/", f"fold_{kfold_index}")
 
         kfold_dir = kfold_dir.replace("\\", "/")
         train_format_csv_path = os.path.join(kfold_dir,
