@@ -95,7 +95,7 @@ class Airogs_Dataset(Dataset):
                 image = self.transform(image)
 
             label = self.label[index]
-
+            label = self.class_name[label].index()
             # Create a one-hot encoded tensor
             if len(self.class_name) > 2:
                 one_hot_encoded = torch.zeros(

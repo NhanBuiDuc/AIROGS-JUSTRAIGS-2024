@@ -86,11 +86,8 @@ class trainer_base():
         self.prepare_data(kfold_index, kfold_seed)
         self.loss_fn = torch.nn.BCELoss()
 
-    def epoch_loop(self):
-        pass
-
-    def train(self):
-
+    def train_loop(self):
+        self.
         # Define your model, loss function, optimizer, and other parameters
         class YourModel(nn.Module):
             def __init__(self):
@@ -136,7 +133,7 @@ class trainer_base():
 
             # Calculate average training loss and accuracy
             avg_train_loss = train_loss / len(self.train_dataloader)
-            avg_train_acc = train_acc / len(self.train_loader)
+            avg_train_acc = train_acc / len(self.val_dataloader)
 
             # Evaluate the model on the test set
             model.eval()  # Set the model to evaluation mode
@@ -155,6 +152,10 @@ class trainer_base():
             print(
                 f"Epoch {epoch + 1}/{self.num_epoch}, Train Loss: {avg_train_loss:.4f}, Train Acc: {avg_train_acc:.2%}, Test Acc: {avg_test_acc:.2%}")
 
+    def train(self):
+        self.train_loop_start()
+        self.train_loop()
+        self.train_loop_end()
     def eval(self):
         pass
 
@@ -181,9 +182,9 @@ class trainer_base():
             kfold_dir = os.path.join(
                 self.data_dir, "ISBI_2024/5kfold_split_images/", f"fold_{kfold_index}")
         train_format_csv_path = os.path.join(kfold_dir,
-                                             f"train_seed{kfold_seed}_kfold_{kfold_index}.csv")
+                                             f"train_seed_{kfold_seed}_kfold_{kfold_index}.csv")
         val_format_csv_path = os.path.join(kfold_dir,
-                                           f"seed_seed{kfold_seed}_kfold_{kfold_index}.csv")
+                                           f"seed_seed_{kfold_seed}_kfold_{kfold_index}.csv")
         self.train_df = pd.read_csv(train_format_csv_path, delimiter=",")
         self.train_image_path = self.train_df["Eye ID"]
         self.train_label = self.train_df["Final Label"]
