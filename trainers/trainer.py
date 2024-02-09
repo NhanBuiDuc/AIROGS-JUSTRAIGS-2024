@@ -99,16 +99,19 @@ class trainer_base():
         self.val_Y_list = []
         self.val_current_best_sensitivity = 0.0
         self.patient_count = 0
+        self.model = swin_v2_b(weights=None, progress=True,
+                               num_classes=1)
+        self.optimizer = optim.Adagrad(self.model.parameters(), lr=0.0001)
+        self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+            self.optimizer, mode='min', factor=0.1, patience=10, threshold=0.00001, threshold_mode='rel', cooldown=3, min_lr=0, eps=1e-08)
 
     def train_loop(self):
 
         # self.model = resnet50(weights=None, progress=True,
         #                       num_classes=1)
-        self.model = swin_v2_b(weights=None, progress=True,
-                               num_classes=1)
+
         m = nn.Sigmoid()
         self.model.to(self.device)
-        optimizer = optim.Adam(self.model.parameters(), lr=0.0001)
 
         for epoch in range(self.num_epoch):
             self.model.train()  # Set the self.model to training mode
@@ -129,9 +132,9 @@ class trainer_base():
                     self.train_logits_list.append(y_logits)
                     self.train_Y_list.append(ybatch)
                     # Backward pass and optimization
-                    optimizer.zero_grad()
+                    self.optimizer.zero_grad()
                     loss.backward()
-                    optimizer.step()
+                    self.optimizer.step()
 
                     # Update metrics
                     train_loss += loss.item()
@@ -161,7 +164,7 @@ class trainer_base():
 
                     # Update metrics
                     val_loss += loss.item()
-
+                    self.scheduler.step(val_loss)
             # Calculate average training loss and accuracy
             avg_val_loss = val_loss / len(self.val_dataloader)
             # Print and log the metrics
