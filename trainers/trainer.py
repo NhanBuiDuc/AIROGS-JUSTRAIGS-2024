@@ -30,7 +30,8 @@ class trainer_base():
         kfold_index: int = 0,
         batch_size: int = 16,
         num_workers: int = 0,
-        is_transform=True,
+        is_transform: bool = True,
+        device: str = "cuda"
     ) -> None:
         torch.backends.bottleneck = True
         train_trans = transforms.Compose(
@@ -59,10 +60,7 @@ class trainer_base():
 
         self.train_transforms = train_trans
         self.val_transforms = val_trans
-        self.data_train: Optional[Dataset] = None
-        self.data_val: Optional[Dataset] = None
-        self.data_test: Optional[Dataset] = None
-
+        self.device = device
         self.batch_size_ = batch_size
         self.data_dir = data_dir
         self.num_epoch = num_epoch
@@ -98,6 +96,7 @@ class trainer_base():
 
         model = resnet50(weights=None, progress=True,
                          num_classes=1)
+        model.to(self.device)
         optimizer = optim.Adam(model.parameters(), lr=0.0001)
 
         for epoch in range(self.num_epoch):
@@ -108,8 +107,14 @@ class trainer_base():
                 bar.set_description(f"Epoch {epoch}")
 
                 for Xbatch, ybatch in self.train_dataloader:
+                    Xbatch.to(self.device)
+                    ybatch.to(self.device)
+                    ybatch = ybatch.view(ybatch.shape[0], 1)
                     # Forward pass
                     y_logits = model(Xbatch)
+
+                    y_logits.to(self.device)
+
                     loss = self.loss_fn(y_logits, ybatch)
                     self.train_logits_list.append(Xbatch)
                     self.train_Y_list.append(ybatch)
@@ -133,7 +138,15 @@ class trainer_base():
 
             with torch.no_grad():
                 for Xbatch, ybatch in self.val_dataloader:
+
+                    Xbatch.to(self.device)
+                    ybatch.to(self.device)
+                    ybatch = ybatch.view(ybatch.shape[0], 1)
+
                     y_logits = model(Xbatch)
+
+                    y_logits.to(self.device)
+
                     loss = self.loss_fn(y_logits, ybatch)
                     self.val_logits_list.append(Xbatch)
                     self.val_Y_list.append(ybatch)
