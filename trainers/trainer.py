@@ -315,16 +315,16 @@ class trainer_base():
         val_format_csv_path = val_format_csv_path.replace("/", "\\")
 
         self.train_df = pd.read_csv(train_format_csv_path, delimiter=",")
-        self.train_image_path = self.train_df["Eye ID"]
+        self.train_image_name_list = self.train_df["Eye ID"]
         self.train_label = self.train_df["Final Label"]
         self.val_df = pd.read_csv(val_format_csv_path, delimiter=",")
         self.val_image_path = self.val_df["Eye ID"]
         self.val_label = self.val_df["Final Label"]
 
-        self.train_dataset = Airogs_Dataset(self.train_image_path.tolist(), self.train_label, self.class_name, len(
+        self.train_dataset = Airogs_Dataset(self.train_image_name_list.tolist(), self.train_label, self.class_name, len(
             self.train_label), self.data_dir, self.train_image_path, self.is_transform, self.train_transforms, self.val_transforms, True, self.image_size)
 
-        self.val_dataset = Airogs_Dataset(self.val_image_path.tolist(), self.val_label, self.class_name, len(
+        self.val_dataset = Airogs_Dataset(self.train_image_name_list.tolist(), self.val_label, self.class_name, len(
             self.val_label), self.data_dir, self.train_image_path, self.is_transform, self.train_transforms, self.val_transforms, False, self.image_size)
 
         self.train_dataloader = DataLoader(
