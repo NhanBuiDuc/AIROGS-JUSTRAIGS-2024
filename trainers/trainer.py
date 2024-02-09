@@ -114,7 +114,7 @@ class trainer_base():
                     y_logits = model(Xbatch)
 
                     loss = self.loss_fn(y_logits, ybatch)
-                    self.train_logits_list.append(Xbatch)
+                    self.train_logits_list.append(y_logits)
                     self.train_Y_list.append(ybatch)
                     # Backward pass and optimization
                     optimizer.zero_grad()
@@ -144,7 +144,7 @@ class trainer_base():
                     y_logits = model(Xbatch)
 
                     loss = self.loss_fn(y_logits, ybatch)
-                    self.val_logits_list.append(Xbatch)
+                    self.val_logits_list.append(y_logits)
                     self.val_Y_list.append(ybatch)
 
                     # Update metrics
