@@ -16,7 +16,7 @@ geo_aug_images = os.path.join(
 color_aug_images = os.path.join(
     data_dir, "AIROGS_2024", "color_aug_images")
 output_dir = os.path.join(
-    data_dir, "AIROGS_2024", "5kfold_split_images")
+    data_dir, "AIROGS_2024", "fold_split_images")
 # Create the directory if it does not exist
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
