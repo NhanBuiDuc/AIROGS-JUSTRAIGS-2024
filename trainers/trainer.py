@@ -15,7 +15,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from tqdm import tqdm
-from torchvision.models import resnet50
+from torchvision.self.models import resnet50
 
 
 class trainer_base():
@@ -99,14 +99,14 @@ class trainer_base():
 
     def train_loop(self):
 
-        model = resnet50(weights=None, progress=True,
-                         num_classes=1)
+        self.model = resnet50(weights=None, progress=True,
+                              num_classes=1)
         m = nn.Sigmoid()
-        model.to(self.device)
-        optimizer = optim.Adam(model.parameters(), lr=0.0001)
+        self.model.to(self.device)
+        optimizer = optim.Adam(self.model.parameters(), lr=0.0001)
 
         for epoch in range(self.num_epoch):
-            model.train()  # Set the model to training mode
+            self.model.train()  # Set the self.model to training mode
             train_loss = 0.0
             val_loss = 0.0
             with tqdm(total=len(self.train_dataloader), unit="batch", mininterval=0) as bar:
@@ -117,7 +117,7 @@ class trainer_base():
                     ybatch = ybatch.to(self.device)
 
                     # Forward pass
-                    y_logits = model(Xbatch)
+                    y_logits = self.model(Xbatch)
                     y_logits = m(y_logits)
                     y_logits = y_logits.squeeze(1)
                     loss = self.loss_fn(y_logits, ybatch)
@@ -138,8 +138,8 @@ class trainer_base():
             # Calculate average training loss and accuracy
             avg_train_loss = train_loss / len(self.train_dataloader)
 
-            # Evaluate the model on the test set
-            model.eval()  # Set the model to evaluation mode
+            # Evaluate the self.model on the test set
+            self.model.eval()  # Set the self.model to evaluation mode
 
             with torch.no_grad():
                 for Xbatch, ybatch in self.val_dataloader:
@@ -147,7 +147,7 @@ class trainer_base():
                     Xbatch = Xbatch.to(self.device)
                     ybatch = ybatch.to(self.device)
 
-                    y_logits = model(Xbatch)
+                    y_logits = self.model(Xbatch)
                     y_logits = m(y_logits)
                     y_logits = y_logits.squeeze(1)
                     loss = self.loss_fn(y_logits, ybatch)
@@ -301,7 +301,7 @@ class trainer_base():
         pass
 
     def train_loop_end(self):
-        self.model.savecheckpoint()
+        self.self.model.savecheckpoint()
 
     def train(self):
         self.train_loop_start()
