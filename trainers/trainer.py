@@ -172,10 +172,10 @@ class trainer_base():
             val_fpr >= (1 - self.desired_specificity))
         # Get the corresponding threshold
         train_threshold_at_desired_specificity = train_thresholds[train_threshold_idx]
-        val_threshold_at_desired_specificity = val_thresholds[val_threshold_idx]
+        val_threshold = val_thresholds[val_threshold_idx]
         # Get the corresponding TPR (sensitivity)
-        train_sensitivity_at_desired_specificity = train_tpr[train_threshold_idx]
-        val_sensitivity_at_desired_specificity = val_tpr[val_threshold_idx]
+        train_sensitivity = train_tpr[train_threshold_idx]
+        val_sensitivity = val_tpr[val_threshold_idx]
         # Calculate the AUC (Area Under the Curve)
         train_roc_auc = auc(train_fpr, train_tpr)
         val_roc_auc = auc(val_fpr, val_tpr)
@@ -188,19 +188,17 @@ class trainer_base():
         train_predicted_labels = (
             train_merged_logits >= train_threshold_at_desired_specificity).astype(int)
         val_predicted_labels = (
-            val_merged_logits >= val_threshold_at_desired_specificity).astype(int)
+            val_merged_logits >= val_threshold).astype(int)
         # Compute confusion matrix
         train_conf_matrix = confusion_matrix(
             train_merged_gt, train_predicted_labels)
         val_conf_matrix = confusion_matrix(
             val_merged_gt, val_predicted_labels)
 
-        current_best_sensitivity = self.val_sensitivity_best.compute()
-
-        if sensitivity_at_desired_specificity > current_best_sensitivity:
-            self.best_sensitivity = sensitivity_at_desired_specificity
-            self.auc_at_best_sensitivity = roc_auc
-            self.thresh_hold_at_best_sensitivity = threshold_at_desired_specificity
+        if val_sensitivity > self.val_current_best_sensitivity:
+            self.best_sensitivity = self.val_current_best_sensitivity
+            self.auc_at_best_sensitivity = val_roc_auc
+            self.thresh_hold_at_best_sensitivity = val_threshold
             self.val_sensitivity_best(sensitivity_at_desired_specificity)
         print("val/sensitivity: ", sensitivity_at_desired_specificity)
         print("val/roc_auc: ", roc_auc)
@@ -291,9 +289,9 @@ class trainer_base():
             kfold_dir = os.path.join(
                 self.data_dir, "ISBI_2024/5kfold_split_images/", f"fold_{kfold_index}")
         train_format_csv_path = os.path.join(kfold_dir,
-                                             f"train_seed_{kfold_seed}_kfold_{kfold_index}.csv")
+                                             f"train_seed{kfold_seed}_kfold_{kfold_index}.csv")
         val_format_csv_path = os.path.join(kfold_dir,
-                                           f"seed_seed_{kfold_seed}_kfold_{kfold_index}.csv")
+                                           f"seed_seed{kfold_seed}_kfold_{kfold_index}.csv")
         self.train_df = pd.read_csv(train_format_csv_path, delimiter=",")
         self.train_image_path = self.train_df["Eye ID"]
         self.train_label = self.train_df["Final Label"]
