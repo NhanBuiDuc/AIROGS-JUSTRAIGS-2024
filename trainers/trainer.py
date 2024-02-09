@@ -109,10 +109,10 @@ class trainer_base():
                 for Xbatch, ybatch in self.train_dataloader:
                     Xbatch = Xbatch.to(self.device)
                     ybatch = ybatch.to(self.device)
-                    ybatch = ybatch.unsqueeze(1)
+
                     # Forward pass
                     y_logits = model(Xbatch)
-
+                    y_logits = y_logits.squeeze(1)
                     loss = self.loss_fn(y_logits, ybatch)
                     self.train_logits_list.append(y_logits)
                     self.train_Y_list.append(ybatch)
@@ -139,10 +139,9 @@ class trainer_base():
 
                     Xbatch = Xbatch.to(self.device)
                     ybatch = ybatch.to(self.device)
-                    ybatch = ybatch.unsqueeze(1)
 
                     y_logits = model(Xbatch)
-
+                    y_logits = y_logits.squeeze(1)
                     loss = self.loss_fn(y_logits, ybatch)
                     self.val_logits_list.append(y_logits)
                     self.val_Y_list.append(ybatch)
