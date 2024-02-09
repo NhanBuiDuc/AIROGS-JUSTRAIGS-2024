@@ -15,7 +15,10 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from tqdm import tqdm
-from torchvision.self.models import resnet50
+from torchvision.models import resnet50, swin_v2_b
+from csv_logger import CsvLogger
+import logging
+from time import sleep
 
 
 class trainer_base():
@@ -99,8 +102,10 @@ class trainer_base():
 
     def train_loop(self):
 
-        self.model = resnet50(weights=None, progress=True,
-                              num_classes=1)
+        # self.model = resnet50(weights=None, progress=True,
+        #                       num_classes=1)
+        self.model = swin_v2_b(weights=None, progress=True,
+                               num_classes=1)
         m = nn.Sigmoid()
         self.model.to(self.device)
         optimizer = optim.Adam(self.model.parameters(), lr=0.0001)
@@ -162,7 +167,10 @@ class trainer_base():
             # Print and log the metrics
             print(
                 f"Epoch {epoch + 1}/{self.num_epoch}, Train Loss: {avg_train_loss:.4f}, Train Loss: {avg_val_loss:.2%}")
-            self.train_epoch_end(epoch, avg_train_loss, avg_val_loss)
+            if self.train_epoch_end(epoch, avg_train_loss, avg_val_loss) == True:
+                break
+            else:
+                continue
 
     def train_epoch_end(self, epoch, avg_train_loss, avg_val_loss):
         train_merged_logits = torch.cat(self.train_logits_list, dim=0)
@@ -241,25 +249,30 @@ class trainer_base():
 
         # Calculate F1 score
         val_f1 = f1_score(val_merged_gt, val_predicted_labels)
-
-        print("val/sensitivity: ", val_sensitivity)
-        print("train/sensitivity: ", train_sensitivity)
-        print("train/roc_auc: ", train_roc_auc)
-        print("val/roc_auc: ", val_roc_auc)
-        print("val/threshold: ", val_threshold)
         print("train/threshold: ", train_threshold)
         print("train/target_count_zeros: ", train_target_count_zeros)
         print("train/target_count_ones: ", train_target_count_ones)
+        print("train/confusion_matrix: ", train_conf_matrix)
+        print("train/sensitivity: ", train_sensitivity)
+        print("train/roc_auc: ", train_roc_auc)
+        print("train/true_negative: ", train_conf_matrix[0][0])
+        print("train/false_positive", train_conf_matrix[0][1])
+        print("train/false_negative: ", train_conf_matrix[1][0])
+        print("train/true_positive", train_conf_matrix[1][1])
+        print("train/acc", train_accuracy)
+        print("train/f1", train_f1)
+        print("train/recall", train_recall)
+        print("train/precision", train_precision)
+        print("train/loss", avg_train_loss)
+
+        print("val/sensitivity: ", val_sensitivity)
+        print("val/roc_auc: ", val_roc_auc)
+        print("val/threshold: ", val_threshold)
         print("val/target_count_zeros: ", val_target_count_zeros)
         print("val/target_count_ones: ", val_target_count_ones)
         # print("val/pred_count_zeros", pred_count_zeros)
         # print("val/pred_count_ones", pred_count_ones)
         print("val/confusion_matrix: ", val_conf_matrix)
-        print("train/confusion_matrix: ", train_conf_matrix)
-        print("train/true_negative: ", train_conf_matrix[0][0])
-        print("train/false_positive", train_conf_matrix[0][1])
-        print("train/false_negative: ", train_conf_matrix[1][0])
-        print("train/true_positive", train_conf_matrix[1][1])
         print("val/true_negative: ", val_conf_matrix[0][0])
         print("val/false_positive", val_conf_matrix[0][1])
         print("val/false_negative: ", val_conf_matrix[1][0])
@@ -271,19 +284,22 @@ class trainer_base():
         print("val/f1", val_f1)
         print("val/recall", val_recall)
         print("val/precision", val_precision)
-        print("train/acc", train_accuracy)
-        print("train/f1", train_f1)
-        print("train/recall", train_recall)
-        print("train/precision", train_precision)
         print("val/loss", avg_val_loss)
-        print("train/loss", avg_train_loss)
+
+        if not os.path.exists("logs"):
+            os.makedirs("logs")
+        self.logs_path = os.path.join(
+            "logs", f"logs_seed_{self.kfold_seed}_fold_{self.kfold_index}")
+        model_name = f"logs_seed_{self.kfold_seed}_fold_{self.kfold_index}_epoch_{epoch}.pth"
+        model_path = os.path.join(
+            "logs", model_name)
         if self.logger is not None:
             self.logger = CSVLogger(
-                f"logs_seed_{self.kfold_seed}_fold_{self.kfold_index}", separator=",", append=False)
+                self.logs_path, separator=",", append=False)
         is_early_stop = self.early_stop()
         if not is_early_stop:
             self.trigger_scheduler()
-            self.save_checkpoint()
+            self.save_checkpoint(self.model, model_path)
         return is_early_stop
 
     def early_stop(self):
@@ -294,11 +310,54 @@ class trainer_base():
         else:
             return False
 
+    def init_logger(self):
+        filename = 'logs/log.csv'
+        delimiter = ','
+        level = logging.INFO
+        custom_additional_levels = ['logs_a', 'logs_b', 'logs_c']
+        fmt = f'%(asctime)s{delimiter}%(levelname)s{delimiter}%(message)s'
+        datefmt = '%Y/%m/%d %H:%M:%S'
+        max_size = 1024  # 1 kilobyte
+        max_files = 4  # 4 rotating files
+        header = ['date', 'level', 'value_1', 'value_2']
+
+        # Creat logger with csv rotating handler
+        csvlogger = CsvLogger(filename=filename,
+                              delimiter=delimiter,
+                              level=level,
+                              add_level_names=custom_additional_levels,
+                              add_level_nums=None,
+                              fmt=fmt,
+                              datefmt=datefmt,
+                              max_size=max_size,
+                              max_files=max_files,
+                              header=header)
+
+        # Log some records
+        for i in range(10):
+            csvlogger.logs_a([i, i * 2])
+            sleep(0.1)
+
+        # You can log list or string
+        csvlogger.logs_b([1000.1, 2000.2])
+        csvlogger.critical('3000,4000')
+
+        # Log some more records to trigger rollover
+        for i in range(50):
+            csvlogger.logs_c([i * 2, float(i**2)])
+            sleep(0.1)
+
+        # Read and print all of the logs from file after logging
+        all_logs = csvlogger.get_logs(evaluate=False)
+        for log in all_logs:
+            print(log)
+
     def trigger_scheduler(self):
         pass
 
-    def save_checkpoint(self):
-        pass
+    def save_checkpoint(self, model, model_path):
+        # Save the entire model
+        torch.save(model, model_path)
 
     def train_loop_end(self):
         self.self.model.savecheckpoint()
