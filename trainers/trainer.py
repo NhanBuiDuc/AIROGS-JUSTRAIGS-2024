@@ -86,8 +86,14 @@ class trainer_base():
         self.prepare_data(kfold_index, kfold_seed)
         self.loss_fn = torch.nn.BCELoss()
 
+    def train_loop_start(self):
+        self.train_X_list = []
+        self.train_Y_list = []
+        self.val_X_list = []
+        self.val_Y_list = []
+
     def train_loop(self):
-        self.
+
         # Define your model, loss function, optimizer, and other parameters
         class YourModel(nn.Module):
             def __init__(self):
@@ -156,6 +162,7 @@ class trainer_base():
         self.train_loop_start()
         self.train_loop()
         self.train_loop_end()
+
     def eval(self):
         pass
 
