@@ -96,7 +96,7 @@ class trainer_base():
 
         model = resnet50(weights=None, progress=True,
                          num_classes=1)
-        m = nn.Sigmoid(dim=1)
+        m = nn.Sigmoid()
         model.to(self.device)
         optimizer = optim.Adam(model.parameters(), lr=0.0001)
 
