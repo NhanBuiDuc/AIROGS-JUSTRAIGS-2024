@@ -96,6 +96,7 @@ class trainer_base():
 
         model = resnet50(weights=None, progress=True,
                          num_classes=1)
+        m = nn.Sigmoid(dim=1)
         model.to(self.device)
         optimizer = optim.Adam(model.parameters(), lr=0.0001)
 
@@ -112,6 +113,7 @@ class trainer_base():
 
                     # Forward pass
                     y_logits = model(Xbatch)
+                    y_logits = m(y_logits)
                     y_logits = y_logits.squeeze(1)
                     loss = self.loss_fn(y_logits, ybatch)
                     self.train_logits_list.append(y_logits)
@@ -139,7 +141,7 @@ class trainer_base():
 
                     Xbatch = Xbatch.to(self.device)
                     ybatch = ybatch.to(self.device)
-
+                    y_logits = m(y_logits)
                     y_logits = model(Xbatch)
                     y_logits = y_logits.squeeze(1)
                     loss = self.loss_fn(y_logits, ybatch)
