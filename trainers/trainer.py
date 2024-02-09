@@ -6,8 +6,8 @@ from torchvision.transforms import transforms
 import os
 import pandas as pd
 import numpy as np
-
-from sklearn.model_selection import StratifiedKFold, KFold
+from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score, f1_score
+from sklearn.metrics import roc_curve, roc_auc_score, auc
 from sklearn.utils.class_weight import compute_class_weight
 from datasets.AIROGS_dataset import Airogs_Dataset
 import torch
@@ -85,24 +85,16 @@ class trainer_base():
 
         self.prepare_data(kfold_index, kfold_seed)
         self.loss_fn = torch.nn.BCELoss()
+        self.desired_specificity = 0.95
 
     def train_loop_start(self):
-        self.train_X_list = []
+        self.train_logits_list = []
         self.train_Y_list = []
-        self.val_X_list = []
+        self.val_logits_list = []
         self.val_Y_list = []
+        self.val_current_best_sensitivity = 0.0
 
     def train_loop(self):
-
-        # Define your model, loss function, optimizer, and other parameters
-        class YourModel(nn.Module):
-            def __init__(self):
-                super(YourModel, self).__init__()
-                # Define your model layers here
-
-            def forward(self, x):
-                # Define the forward pass
-                return x
 
         model = resnet50(weights=None, progress=True,
                          num_classes=1)
@@ -111,18 +103,16 @@ class trainer_base():
         for epoch in range(self.num_epoch):
             model.train()  # Set the model to training mode
             train_loss = 0.0
-            train_acc = 0.0
-
+            val_loss = 0.0
             with tqdm(total=len(self.train_dataloader), unit="batch", mininterval=0) as bar:
                 bar.set_description(f"Epoch {epoch}")
 
                 for Xbatch, ybatch in self.train_dataloader:
                     # Forward pass
-                    y_pred = model(Xbatch)
-                    loss = self.loss_fn(y_pred, ybatch)
-                    acc = (torch.argmax(y_pred, dim=1)
-                           == ybatch).float().mean()
-
+                    y_logits = model(Xbatch)
+                    loss = self.loss_fn(y_logits, ybatch)
+                    self.train_logits_list.append(Xbatch)
+                    self.train_Y_list.append(ybatch)
                     # Backward pass and optimization
                     optimizer.zero_grad()
                     loss.backward()
@@ -130,33 +120,145 @@ class trainer_base():
 
                     # Update metrics
                     train_loss += loss.item()
-                    train_acc += acc.item()
 
                     # Update progress bar
-                    bar.set_postfix(loss=train_loss / (bar.n + 1),
-                                    acc=train_acc / (bar.n + 1))
+                    bar.set_postfix(loss=train_loss / (bar.n + 1))
                     bar.update()
 
             # Calculate average training loss and accuracy
             avg_train_loss = train_loss / len(self.train_dataloader)
-            avg_train_acc = train_acc / len(self.val_dataloader)
 
             # Evaluate the model on the test set
             model.eval()  # Set the model to evaluation mode
-            test_acc = 0.0
 
             with torch.no_grad():
                 for Xbatch, ybatch in self.val_dataloader:
-                    y_pred = model(Xbatch)
-                    acc = (torch.argmax(y_pred, dim=1)
-                           == ybatch).float().mean()
-                    test_acc += acc.item()
+                    y_logits = model(Xbatch)
+                    loss = self.loss_fn(y_logits, ybatch)
+                    self.val_logits_list.append(Xbatch)
+                    self.val_Y_list.append(ybatch)
 
-            avg_test_acc = test_acc / len(self.val_dataloader)
+                    # Update metrics
+                    val_loss += loss.item()
 
+            # Calculate average training loss and accuracy
+            avg_val_loss = val_loss / len(self.val_dataloader)
             # Print and log the metrics
             print(
-                f"Epoch {epoch + 1}/{self.num_epoch}, Train Loss: {avg_train_loss:.4f}, Train Acc: {avg_train_acc:.2%}, Test Acc: {avg_test_acc:.2%}")
+                f"Epoch {epoch + 1}/{self.num_epoch}, Train Loss: {avg_train_loss:.4f}, Train Loss: {avg_val_loss:.2%}")
+        self.train_epoch_end()
+
+    def train_epoch_end(self):
+        train_merged_logits = torch.cat(self.train_logits_list, dim=0)
+        train_merged_gt = torch.cat(self.train_Y_list, dim=0)
+        val_merged_logits = torch.cat(self.val_logits_list, dim=0)
+        val_merged_gt = torch.cat(self.val_Y_list, dim=0)
+
+        train_merged_logits = train_merged_logits.detach().cpu().numpy()
+        train_merged_gt = train_merged_gt.detach().cpu().numpy()
+        val_merged_logits = val_merged_logits.detach().cpu().numpy()
+        val_merged_gt = val_merged_gt.detach().cpu().numpy()
+        # Compute the ROC curve
+        train_fpr, train_tpr, train_thresholds = roc_curve(
+            train_merged_gt, train_merged_logits)
+        val_fpr, val_tpr, val_thresholds = roc_curve(
+            val_merged_gt, val_merged_logits)
+        # Desired specificity
+
+        # Find the index of the threshold that is closest to the desired specificity
+        train_threshold_idx = np.argmax(
+            train_fpr >= (1 - self.desired_specificity))
+        val_threshold_idx = np.argmax(
+            val_fpr >= (1 - self.desired_specificity))
+        # Get the corresponding threshold
+        train_threshold_at_desired_specificity = train_thresholds[train_threshold_idx]
+        val_threshold_at_desired_specificity = val_thresholds[val_threshold_idx]
+        # Get the corresponding TPR (sensitivity)
+        train_sensitivity_at_desired_specificity = train_tpr[train_threshold_idx]
+        val_sensitivity_at_desired_specificity = val_tpr[val_threshold_idx]
+        # Calculate the AUC (Area Under the Curve)
+        train_roc_auc = auc(train_fpr, train_tpr)
+        val_roc_auc = auc(val_fpr, val_tpr)
+        train_target_count_zeros = np.count_nonzero(train_merged_gt == 0)
+        train_target_count_ones = np.count_nonzero(train_merged_gt == 1)
+        val_target_count_zeros = np.count_nonzero(val_merged_gt == 0)
+        val_target_count_ones = np.count_nonzero(val_merged_gt == 1)
+
+        # Get the predicted labels based on the threshold
+        train_predicted_labels = (
+            train_merged_logits >= train_threshold_at_desired_specificity).astype(int)
+        val_predicted_labels = (
+            val_merged_logits >= val_threshold_at_desired_specificity).astype(int)
+        # Compute confusion matrix
+        train_conf_matrix = confusion_matrix(
+            train_merged_gt, train_predicted_labels)
+        val_conf_matrix = confusion_matrix(
+            val_merged_gt, val_predicted_labels)
+
+        current_best_sensitivity = self.val_sensitivity_best.compute()
+
+        if sensitivity_at_desired_specificity > current_best_sensitivity:
+            self.best_sensitivity = sensitivity_at_desired_specificity
+            self.auc_at_best_sensitivity = roc_auc
+            self.thresh_hold_at_best_sensitivity = threshold_at_desired_specificity
+            self.val_sensitivity_best(sensitivity_at_desired_specificity)
+        print("val/sensitivity: ", sensitivity_at_desired_specificity)
+        print("val/roc_auc: ", roc_auc)
+        print("val/threshold: ", threshold_at_desired_specificity)
+        print("val/length: ", len(merged_targets))
+        print("val/target_count_zeros: ", target_count_zeros)
+        print("val/target_count_ones: ", target_count_ones)
+
+        print("val/confusion_matrix: ", conf_matrix)
+        print("val/false_negative: ", conf_matrix[1][0])
+        print("val/true_negative: ", conf_matrix[0][0])
+
+        print("val/false_positive", conf_matrix[0][1])
+        print("val/true_positive", conf_matrix[1][1])
+
+        print("val/pred_count_zeros", pred_count_zeros)
+        print("val/pred_count_ones", pred_count_ones)
+
+        # Calculate accuracy
+        accuracy = accuracy_score(targets, predicted_labels)
+
+        # Calculate precision
+        precision = precision_score(targets, predicted_labels)
+
+        # Calculate recall
+        recall = recall_score(targets, predicted_labels)
+
+        # Calculate F1 score
+        f1 = f1_score(targets, predicted_labels)
+
+        print("val/sensitivity_best", self.val_sensitivity_best.compute(),
+              on_step=False, on_epoch=True, prog_bar=True,  logger=True)
+        print("val/roc_auc_best", self.auc_at_best_sensitivity)
+        print("val/thresh_hold_best", self.thresh_hold_at_best_sensitivity)
+
+        print("val/acc", accuracy, on_step=False,
+              on_epoch=True, prog_bar=True, logger=True)
+        print("val/f1", f1)
+        print("val/recall", recall)
+        print("val/precision", precision)
+
+        print("val/loss", self.val_loss.compute())
+
+        # print("val/acc", self.val_acc.compute(), on_step=False,
+        #          on_epoch=True, prog_bar=True, logger=True)
+        # print("val/f1", self.val_f1.compute(),
+        #          on_step=False, on_epoch=True, prog_bar=True,  logger=True)
+        # print("val/recall", self.val_recall.compute(),
+        #          on_step=False, on_epoch=True, prog_bar=True,  logger=True)
+        # print("val/precision", self.val_precision.compute(),
+        #          on_step=False, on_epoch=True, prog_bar=True,  logger=True)
+        # log `val_acc_best` as a value through `.compute()` method, instead of as a metric object
+        # otherwise metric would be reset by lightning after each epoch
+        # print("val/f1_best", self.val_f1_best.compute(),
+        #          sync_dist=True, prog_bar=True)
+        self.pred_list = []
+        self.target_list = []
+        printits_list = []
 
     def train(self):
         self.train_loop_start()
