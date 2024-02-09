@@ -321,10 +321,10 @@ class trainer_base():
         self.val_image_path = self.val_df["Eye ID"]
         self.val_label = self.val_df["Final Label"]
 
-        self.train_dataset = Airogs_Dataset(self.train_image_path, self.train_label, self.class_name, len(
+        self.train_dataset = Airogs_Dataset(self.train_image_path.tolist(), self.train_label, self.class_name, len(
             self.train_label), self.data_dir, self.train_image_path, self.is_transform, self.train_transforms, self.val_transforms, True, self.image_size)
 
-        self.val_dataset = Airogs_Dataset(self.val_image_path, self.val_label, self.class_name, len(
+        self.val_dataset = Airogs_Dataset(self.val_image_path.tolist(), self.val_label, self.class_name, len(
             self.val_label), self.data_dir, self.train_image_path, self.is_transform, self.train_transforms, self.val_transforms, False, self.image_size)
 
         self.train_dataloader = DataLoader(
