@@ -109,7 +109,7 @@ class trainer_base():
                 for Xbatch, ybatch in self.train_dataloader:
                     Xbatch = Xbatch.to(self.device)
                     ybatch = ybatch.to(self.device)
-                    ybatch = ybatch.view(ybatch.shape[0], 1)
+                    ybatch = ybatch.unsqueeze(0)
                     # Forward pass
                     y_logits = model(Xbatch)
 
@@ -141,7 +141,7 @@ class trainer_base():
 
                     Xbatch = Xbatch.to(self.device)
                     ybatch = ybatch.to(self.device)
-                    ybatch = ybatch.view(ybatch.shape[0], 1)
+                    ybatch = ybatch.unsqueeze(0)
 
                     y_logits = model(Xbatch)
 
