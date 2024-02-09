@@ -101,6 +101,7 @@ class trainer_base():
         self.patient_count = 0
         self.model = swin_v2_b(weights=None, progress=True,
                                num_classes=1)
+        self.model.to(self.device)
         self.optimizer = optim.Adagrad(self.model.parameters(), lr=0.0001)
         self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
             self.optimizer, mode='min', factor=0.1, patience=10, threshold=0.00001, threshold_mode='rel', cooldown=3, min_lr=0, eps=1e-08)
@@ -111,7 +112,6 @@ class trainer_base():
         #                       num_classes=1)
 
         m = nn.Sigmoid()
-        self.model.to(self.device)
 
         for epoch in range(self.num_epoch):
             self.model.train()  # Set the self.model to training mode
