@@ -20,7 +20,7 @@ from torchvision.models import resnet50
 class trainer_base():
     def __init__(
         self,
-        data_dir: str = "data/",
+        data_dir: str = "./data/",
         num_epoch: int = 50,
         train_val_test_split: Tuple[int, int, int] = (0.8, 0.2),
         image_size: int = 256,
