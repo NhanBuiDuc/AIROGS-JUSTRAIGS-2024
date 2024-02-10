@@ -299,16 +299,16 @@ class trainer_base():
         if self.logger is not None:
             self.logger = CSVLogger(
                 self.logs_path, separator=",", append=False)
-        is_early_stop = self.early_stop()
+        is_early_stop = self.early_stop(self.model, model_path)
         if not is_early_stop:
             self.trigger_scheduler()
             self.save_checkpoint(self.model, model_path)
         return is_early_stop
 
-    def early_stop(self):
+    def early_stop(self, model, model_path):
         self.patient_count += 1
         if self.patient_count >= self.early_stop_max_patient:
-            self.save_checkpoint()
+            self.save_checkpoint(model, model_path)
             return True
         else:
             return False
