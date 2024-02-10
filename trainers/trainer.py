@@ -111,7 +111,7 @@ class trainer_base():
         # self.model = resnet50(weights=None, progress=True,
         #                       num_classes=1)
 
-        m = nn.ReLU()
+        m = nn.Sigmoid()
 
         for epoch in range(self.num_epoch):
             self.model.train()  # Set the self.model to training mode
