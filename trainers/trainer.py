@@ -19,6 +19,7 @@ from torchvision.models import resnet50, swin_v2_b
 from csv_logger import CsvLogger
 import logging
 from time import sleep
+from loss.custom_loss import SpecificityLoss
 
 
 class trainer_base():
@@ -87,7 +88,8 @@ class trainer_base():
         self.train_gt_path = self.train_gt_path.replace("'", '"')
 
         self.prepare_data(kfold_index, kfold_seed)
-        self.loss_fn = torch.nn.BCELoss()
+        # self.loss_fn = torch.nn.BCELoss()
+        self.loss_fn = SpecificityLoss(threshold=0.5, alpha=1)
         self.desired_specificity = 0.95
         self.early_stop_max_patient = early_stop_max_patient
         self.logger = None
