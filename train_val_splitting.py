@@ -111,5 +111,21 @@ for random_seed in random_seed_list:
             os.makedirs(train_output_dir)
         if not os.path.exists(val_output_dir):
             os.makedirs(val_output_dir)
+        train_nrg_index = train_combined_input_data.index[
+            train_combined_input_data['Final Label'] == 'NRG']
+        train_rg_index = train_combined_input_data.index[
+            train_combined_input_data['Final Label'] == 'RG']
+        val_nrg_index = val_combined_input_data.index[
+            val_combined_input_data['Final Label'] == 'NRG']
+        val_rg_index = val_dataframe.index[val_dataframe['Final Label'] == 'RG']
+
+        train_nrg_count = len(train_nrg_index.tolist())
+        train_rg_count = len(train_rg_index.tolist())
+        val_nrg_count = len(val_nrg_index.tolist())
+        val_rg_count = len(val_rg_index.tolist())
+        print("train_final/class_ones_count: ", train_rg_count)
+        print("train_final/class_zeros_count: ", train_nrg_count)
+        print("val_final/class_ones_count: ", val_rg_count)
+        print("val_final/class_zeros_count: ", val_nrg_count)
         train_combined_input_data.to_csv(train_output_path)
         val_combined_input_data.to_csv(val_output_path)
