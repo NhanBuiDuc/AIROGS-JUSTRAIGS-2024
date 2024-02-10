@@ -6,3 +6,4 @@ data/AIROGS_2024/color_aug_images/*
 data/AIROGS_2024/geo_aug_images/*
 trainers/__pycache__/trainer.cpython-311.pyc
 datasets/__pycache__/AIROGS_dataset.cpython-311.pyc
+data/AIROGS_2024/fold_split_images/*
