@@ -9,7 +9,7 @@ class SpecificityLoss(nn.Module):
         self.threshold = threshold
         self.alpha = alpha
 
-    def forward(self, y_true, y_pred_prob):
+    def forward(self, y_pred_prob, y_true):
         # Binary cross-entropy loss
         bce_loss = F.binary_cross_entropy(y_pred_prob, y_true)
 
