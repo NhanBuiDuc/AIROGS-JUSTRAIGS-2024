@@ -1,32 +1,37 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from sklearn.metrics import roc_curve, roc_auc_score, auc
+import numpy as np
 
 
 class SpecificityLoss(nn.Module):
-    def __init__(self, threshold=0.5, alpha=1.0):
+    def __init__(self, specificity=0.95, alpha=1.5, positive_confidence=0.8, device="cuda"):
         super(SpecificityLoss, self).__init__()
-        self.threshold = threshold
+        self.specificity = specificity
         self.alpha = alpha
+        self.positive_confidence = positive_confidence
+        self.device = device
 
     def forward(self, y_pred_prob, y_true):
         # Binary cross-entropy loss
         bce_loss = F.binary_cross_entropy(y_pred_prob, y_true)
 
-        # Calculate specificity (True Negative Rate)
-        tn = torch.sum((1 - y_true) * (1 - torch.round(y_pred_prob)))
-        fp = torch.sum((1 - y_true) * torch.round(y_pred_prob))
-        specificity = tn / (tn + fp)
+        logits = y_pred_prob.detach().cpu().numpy()
+        gt = y_true.detach().cpu().numpy()
+        fpr, tpr, thresholds = roc_curve(
+            gt, logits)
+        threshold_idx = np.argmax(
+            fpr >= (1 - self.specificity))
+        threshold = thresholds[threshold_idx]
+        logits_loss = (1.0 / len(y_true)) * torch.sum(
+            y_true * (threshold - y_pred_prob) +
+            (1 - y_true) * (y_pred_prob - threshold)
+        )
+        confidence_loss = torch.abs(self.positive_confidence - threshold)
 
-        # Calculate the proximity to the desired specificity threshold
-        proximity_loss = torch.abs(specificity - (1.0 - self.threshold))
-
-        # Combine binary cross-entropy loss and proximity loss
-        total_loss = bce_loss + self.alpha * proximity_loss
-
+        total_loss = self.alpha * logits_loss + bce_loss + confidence_loss
         return total_loss
-
-
 # # Example usage
 # desired_specificity = 0.95
 # alpha = 1.0  # Adjust the weight of the proximity loss
