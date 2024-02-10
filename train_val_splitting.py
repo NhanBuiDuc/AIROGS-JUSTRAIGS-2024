@@ -64,6 +64,17 @@ for random_seed in random_seed_list:
 
         color_images = [f for f in os.listdir(
             color_aug_images) if f.lower().endswith(('.jpg', '.jpeg', '.png'))]
+        # Create a DataFrame for geo_images with "Final Label" as "RG"
+        geo_df = pd.DataFrame({
+            "Eye ID": geo_images,
+            "Final Label": "RG"
+        })
+
+        # Create a DataFrame for color_images with "Final Label" as "RG"
+        color_df = pd.DataFrame({
+            "Eye ID": color_images,
+            "Final Label": "RG"
+        })
         train_dataframe = image_path_and_label_dataframe.iloc[train_indexes, :]
         val_dataframe = image_path_and_label_dataframe.iloc[val_indexes, :]
         train_nrg_index = train_dataframe.index[
@@ -95,7 +106,7 @@ for random_seed in random_seed_list:
         train_rg_input_data = image_path_and_label_dataframe.iloc[train_rg_index, :]
         val_rg_input_data = image_path_and_label_dataframe.iloc[val_rg_index, :]
         train_combined_input_data = pd.concat(
-            [train_selected_nrg_data, train_rg_input_data])
+            [train_selected_nrg_data, train_rg_input_data, geo_df, color_df])
         val_combined_input_data = pd.concat(
             [val_selected_nrg_data, val_rg_input_data])
         # Assuming train_combined_nrg_input_data and val_combined_nrg_input_data are your DataFrames
