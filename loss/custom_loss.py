@@ -16,7 +16,8 @@ class SpecificityLoss(nn.Module):
     def forward(self, y_pred_prob, y_true):
 
         positive_confidence = torch.FloatTensor(
-            self.positive_confidence, device=self.device)
+            self.positive_confidence)
+        positive_confidence.to(self.device)
         # Binary cross-entropy loss
         bce_loss = F.binary_cross_entropy(y_pred_prob, y_true)
 
