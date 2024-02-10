@@ -29,8 +29,8 @@ class SpecificityLoss(nn.Module):
             fpr >= (1 - self.specificity))
         threshold = thresholds[threshold_idx]
         logits_loss = (1.0 / len(y_true)) * torch.sum(
-            torch.clamp(y_true * (threshold - y_pred_prob)) +
-            torch.clamp((1 - y_true) * (y_pred_prob - threshold))
+            torch.clamp(y_true * (threshold - y_pred_prob), min=0) +
+            torch.clamp((1 - y_true) * (y_pred_prob - threshold), min=0)
         )
 
         confidence_loss = torch.abs(positive_confidence - threshold)
