@@ -106,7 +106,7 @@ for random_seed in random_seed_list:
         train_rg_input_data = image_path_and_label_dataframe.iloc[train_rg_index, :]
         val_rg_input_data = image_path_and_label_dataframe.iloc[val_rg_index, :]
         train_combined_input_data = pd.concat(
-            [train_selected_nrg_data, train_rg_input_data, geo_df, color_df])
+            [geo_df, color_df, train_selected_nrg_data, train_rg_input_data])
         val_combined_input_data = pd.concat(
             [val_selected_nrg_data, val_rg_input_data])
         # Assuming train_combined_nrg_input_data and val_combined_nrg_input_data are your DataFrames
