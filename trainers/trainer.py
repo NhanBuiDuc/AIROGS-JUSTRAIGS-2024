@@ -37,7 +37,7 @@ class trainer_base():
         num_workers: int = 0,
         is_transform: bool = True,
         device: str = "cuda",
-        early_stop_max_patient: int = 7
+        early_stop_max_patient: int = 50
     ) -> None:
         torch.backends.bottleneck = True
         train_trans = transforms.Compose(
