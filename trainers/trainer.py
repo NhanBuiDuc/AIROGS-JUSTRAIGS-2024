@@ -104,6 +104,12 @@ class trainer_base():
         self.patient_count = 0
         self.model = swin_v2_b(weights=None, progress=True,
                                num_classes=1)
+        checkpoint_path = 'logs/logs_seed_42_fold_0_epoch_6.pth'
+
+        # Load the model state dictionary from the checkpoint
+        checkpoint = torch.load(
+            checkpoint_path, map_location=torch.device(self.device))
+        self.model.load_state_dict(checkpoint)
         self.model.to(self.device)
         self.optimizer = optim.Adagrad(self.model.parameters(), lr=0.0001)
         self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
