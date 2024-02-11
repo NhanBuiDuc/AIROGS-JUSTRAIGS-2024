@@ -108,8 +108,8 @@ class trainer_base():
 
         # Load the model state dictionary from the checkpoint
         checkpoint = torch.load(
-            checkpoint_path, map_location=torch.device(self.device))
-        self.model.load_state_dict(checkpoint)
+            checkpoint_path)
+        self.model = checkpoint
         self.model.to(self.device)
         self.optimizer = optim.Adagrad(self.model.parameters(), lr=0.0001)
         self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
