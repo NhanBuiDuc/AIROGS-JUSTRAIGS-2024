@@ -39,7 +39,7 @@ os.makedirs(color_directory, exist_ok=True)
 for idx, (image_name, label) in enumerate(zip(input_data, labels_numeric)):
     if label == 1:  # Check if the label is "RG"
         # Assuming images have .jpg extension
-        input_path = os.path.join(train_image_path, f"{image_name}.jpg")
+        input_path = os.path.join(train_image_path, f"{image_name}.JPG")
         try:
             # Open the original image
             original_image = Image.open(input_path)
@@ -47,13 +47,13 @@ for idx, (image_name, label) in enumerate(zip(input_data, labels_numeric)):
             try:
                 # Try opening with .png extension
                 input_path = os.path.join(
-                    train_image_path, f"{image_name}.png")
+                    train_image_path, f"{image_name}.PNG")
                 original_image = Image.open(input_path)
             except FileNotFoundError:
                 try:
                     # Try opening with .jpeg extension
                     input_path = os.path.join(
-                        train_image_path, f"{image_name}.jpeg")
+                        train_image_path, f"{image_name}.JPEG")
                     original_image = Image.open(input_path)
                 except FileNotFoundError:
                     # Handle the case when the image file is not found
