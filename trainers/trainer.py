@@ -305,7 +305,7 @@ class trainer_base():
         model_path = os.path.join(
             "logs", model_name)
         if self.logger is not None:
-            self.logger = CSVLogger(
+            self.logger = CsvLogger(
                 self.logs_path, separator=",", append=False)
         is_early_stop = self.early_stop(self.model, model_path)
         if not is_early_stop:
@@ -404,15 +404,17 @@ class trainer_base():
             kfold_dir = os.path.join(
                 self.data_dir, "AIROGS_2024", "fold_split_images", f"fold_{kfold_index}")
 
-        kfold_dir = kfold_dir.replace("/", "\\")
+        kfold_dir = kfold_dir.replace("\\", "/")
+        kfold_dir = kfold_dir.replace("//", "/")
         train_format_csv_path = os.path.join(kfold_dir,
                                              f"train_seed_{kfold_seed}_kfold_{kfold_index}.csv")
 
-        train_format_csv_path = train_format_csv_path.replace("/", "\\")
+        train_format_csv_path = train_format_csv_path.replace("\\", "/")
+        train_format_csv_path = train_format_csv_path.replace("//", "/")
         val_format_csv_path = os.path.join(kfold_dir,
                                            f"val_seed_{kfold_seed}_kfold_{kfold_index}.csv")
-        val_format_csv_path = val_format_csv_path.replace("/", "\\")
-
+        val_format_csv_path = val_format_csv_path.replace("\\", "/")
+        val_format_csv_path = val_format_csv_path.replace("//", "/")
         self.train_df = pd.read_csv(train_format_csv_path, delimiter=",")
         self.train_image_name_list = self.train_df["Eye ID"]
         self.train_label = self.train_df["Final Label"]
