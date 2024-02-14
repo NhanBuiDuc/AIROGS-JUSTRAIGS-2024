@@ -296,7 +296,10 @@ class trainer_base():
         print("val/recall", val_recall)
         print("val/precision", val_precision)
         print("val/loss", avg_val_loss)
-
+        self.train_logits_list = []
+        self.train_Y_list = []
+        self.val_logits_list = []
+        self.val_Y_list = []
         if not os.path.exists("logs"):
             os.makedirs("logs")
         self.logs_path = os.path.join(
