@@ -14,7 +14,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from tqdm import tqdm
-from torchvision.models import resnet50, swin_v2_b
+from torchvision.models import resnet50, swin_v2_b, mobilenet_v3_large
 from csv_logger import CsvLogger
 import logging
 from time import sleep
@@ -110,7 +110,7 @@ class trainer_base():
         #     checkpoint_path)
         # self.model = checkpoint
         self.model.to(self.device)
-        self.optimizer = optim.Adagrad(self.model.parameters(), lr=0.0001)
+        self.optimizer = optim.Adagrad(self.model.parameters(), lr=0.001)
         self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
             self.optimizer, mode='min', factor=0.1, patience=10, threshold=0.00001, threshold_mode='rel', cooldown=3, min_lr=0, eps=1e-08)
 
