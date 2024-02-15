@@ -132,21 +132,19 @@ class trainer_base():
                 for Xbatch, ybatch in self.train_dataloader:
                     Xbatch = Xbatch.to(self.device)
                     ybatch = ybatch.to(self.device)
-
+                    self.optimizer.zero_grad()
                     # Forward pass
                     y_logits = self.model(Xbatch)
                     y_logits = m(y_logits)
                     y_logits = y_logits.squeeze(1)
                     loss = self.loss_fn(y_logits, ybatch)
+                    loss.backward()
+                    self.optimizer.step()
+                    # Update metrics
+                    train_loss += loss.item()
                     self.train_logits_list.append(y_logits)
                     self.train_Y_list.append(ybatch)
                     # Backward pass and optimization
-                    self.optimizer.zero_grad()
-                    loss.backward()
-                    self.optimizer.step()
-
-                    # Update metrics
-                    train_loss += loss.item()
 
                     # Update progress bar
                     bar.set_postfix(loss=train_loss / (bar.n + 1))
