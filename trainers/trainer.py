@@ -320,7 +320,6 @@ class trainer_base():
         print("val/f1_50", val_f1_50)
         print("val/recall_50", val_recall_50)
         print("val/precision_50", val_precision_50)
-        print("val/loss_50", avg_val_loss_50)
 
         ####################################################
         print("train/threshold: ", train_threshold)
