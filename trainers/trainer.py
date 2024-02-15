@@ -18,7 +18,7 @@ from torchvision.models import resnet50, swin_v2_b, mobilenet_v3_large
 from csv_logger import CsvLogger
 import logging
 from time import sleep
-from loss.custom_loss import SpecificityLoss
+from loss.custom_loss import SpecificityLoss, F1DoubleSoftLoss
 
 
 class trainer_base():
@@ -90,6 +90,7 @@ class trainer_base():
         self.loss_fn = torch.nn.BCELoss()
         # self.loss_fn = SpecificityLoss(
         #     specificity=0.95, alpha=1.5, positive_confidence=0.8, device="cuda")
+        self.loss_fn = F1DoubleSoftLoss(mean="mean")
         self.desired_specificity = 0.95
         self.early_stop_max_patient = early_stop_max_patient
         self.logger = None
