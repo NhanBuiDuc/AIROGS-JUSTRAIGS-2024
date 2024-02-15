@@ -42,7 +42,7 @@ class SpecificityLoss(nn.Module):
 class F1DoubleSoftLoss(nn.Module):
     def __init__(self, mean):
         super(F1DoubleSoftLoss, self).__init__()
-        self.mean = mean
+        self.reduction = mean
 
     def forward(self, y_pred_prob, y_true):
         """Compute the macro soft F1-score as a cost (average 1 - soft-F1 across all labels).
