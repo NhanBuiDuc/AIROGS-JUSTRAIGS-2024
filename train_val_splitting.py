@@ -100,8 +100,10 @@ for random_seed in random_seed_list:
         val_nrg_selected_indices = random.sample(
             val_nrg_index.tolist(), val_rg_count)
         # Get the corresponding input and label data using the selected indices
+        # train_selected_nrg_data = image_path_and_label_dataframe.iloc[
+        #     train_nrg_selected_indices, :]
         train_selected_nrg_data = image_path_and_label_dataframe.iloc[
-            train_nrg_selected_indices, :]
+            train_nrg_index, :]
         val_selected_nrg_data = image_path_and_label_dataframe.iloc[val_nrg_selected_indices, :]
         train_rg_input_data = image_path_and_label_dataframe.iloc[train_rg_index, :]
         val_rg_input_data = image_path_and_label_dataframe.iloc[val_rg_index, :]
