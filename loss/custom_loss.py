@@ -35,7 +35,7 @@ class SpecificityLoss(nn.Module):
 
         confidence_loss = torch.abs(positive_confidence - threshold)
 
-        total_loss = self.alpha * logits_loss + bce_loss + confidence_loss
+        total_loss = self.alpha * logits_loss + confidence_loss
         return total_loss
 # # Example usage
 # desired_specificity = 0.95

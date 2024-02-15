@@ -224,12 +224,19 @@ class trainer_base():
             train_merged_logits >= train_threshold).astype(int)
         val_predicted_labels = (
             val_merged_logits >= val_threshold).astype(int)
+        train_predicted_labels_50 = (
+            train_merged_logits >= 50).astype(int)
+        val_predicted_labels_50 = (
+            val_merged_logits >= 50).astype(int)
         # Compute confusion matrix
         train_conf_matrix = confusion_matrix(
             train_merged_gt, train_predicted_labels)
         val_conf_matrix = confusion_matrix(
             val_merged_gt, val_predicted_labels)
-
+        train_conf_matrix_50 = confusion_matrix(
+            train_merged_gt, train_predicted_labels)
+        val_conf_matrix_50 = confusion_matrix(
+            val_merged_gt, val_predicted_labels)
         if val_sensitivity > self.val_current_best_sensitivity:
             self.best_sensitivity = self.val_current_best_sensitivity
             self.auc_at_best_sensitivity = val_roc_auc
@@ -260,6 +267,69 @@ class trainer_base():
 
         # Calculate F1 score
         val_f1 = f1_score(val_merged_gt, val_predicted_labels)
+
+        train_accuracy_50 = accuracy_score(
+            train_merged_gt, train_predicted_labels_50)
+
+        # Calculate precision
+        train_precision_50 = precision_score(
+            train_merged_gt, train_predicted_labels_50)
+        # Calculate recall
+        train_recall_50 = recall_score(
+            train_merged_gt, train_predicted_labels_50)
+
+        # Calculate F1 score
+        train_f1_50 = f1_score(train_merged_gt, train_predicted_labels_50)
+
+        val_accuracy_50 = accuracy_score(
+            val_merged_gt, val_predicted_labels_50)
+
+        # Calculate precision
+        val_precision_50 = precision_score(
+            val_merged_gt, val_predicted_labels_50)
+
+        # Calculate recall
+        val_recall_50 = recall_score(val_merged_gt, val_predicted_labels_50)
+
+        # Calculate F1 score
+        val_f1_50 = f1_score(val_merged_gt, val_predicted_labels_50)
+
+        sensitivity = len(
+            train_conf_matrix_50[1][1] / (train_conf_matrix_50[1][1] + train_conf_matrix_50[1][0]))
+        print("train/threshold: ", 50)
+        print("train/confusion_matrix_50: ", train_conf_matrix_50)
+        print("train/sensitivity: ", sensitivity)
+        print("train/true_negative_50: ", train_conf_matrix_50[0][0])
+        print("train/false_positive_50", train_conf_matrix_50[0][1])
+        print("train/false_negative_50: ", train_conf_matrix_50[1][0])
+        print("train/true_positive_50", train_conf_matrix_50[1][1])
+        print("train/acc", train_accuracy)
+        print("train/f1", train_f1)
+        print("train/recall", train_recall)
+        print("train/precision", train_precision)
+        print("train/loss", avg_train_loss)
+
+        print("val/sensitivity: ", val_sensitivity)
+        print("val/roc_auc: ", val_roc_auc)
+        print("val/threshold: ", val_threshold)
+        print("val/target_count_zeros: ", val_target_count_zeros)
+        print("val/target_count_ones: ", val_target_count_ones)
+        # print("val/pred_count_zeros", pred_count_zeros)
+        # print("val/pred_count_ones", pred_count_ones)
+        print("val/confusion_matrix: ", val_conf_matrix)
+        print("val/true_negative: ", val_conf_matrix[0][0])
+        print("val/false_positive", val_conf_matrix[0][1])
+        print("val/false_negative: ", val_conf_matrix[1][0])
+        print("val/true_positive", val_conf_matrix[1][1])
+        print("val/sensitivity_best", self.val_current_best_sensitivity)
+        print("val/roc_auc_best", self.auc_at_best_sensitivity)
+        print("val/thresh_hold_best", self.thresh_hold_at_best_sensitivity)
+        print("val/acc", val_accuracy)
+        print("val/f1", val_f1)
+        print("val/recall", val_recall)
+        print("val/precision", val_precision)
+        print("val/loss", avg_val_loss)
+
         print("train/threshold: ", train_threshold)
         print("train/target_count_zeros: ", train_target_count_zeros)
         print("train/target_count_ones: ", train_target_count_ones)
