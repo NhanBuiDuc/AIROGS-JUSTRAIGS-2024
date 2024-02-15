@@ -294,10 +294,10 @@ class trainer_base():
         # Calculate F1 score
         val_f1_50 = f1_score(val_merged_gt, val_predicted_labels_50)
 
-        train_sensitivity_50 = len(
-            train_conf_matrix_50[1][1] / (train_conf_matrix_50[1][1] + train_conf_matrix_50[1][0]))
-        val_sensitivity_50 = len(
-            val_conf_matrix_50[1][1] / (val_conf_matrix_50[1][1] + val_conf_matrix_50[1][0]))
+        train_sensitivity_50 = train_conf_matrix_50[1][1] / (
+            train_conf_matrix_50[1][1] + train_conf_matrix_50[1][0])
+        val_sensitivity_50 = val_conf_matrix_50[1][1] / \
+            (val_conf_matrix_50[1][1] + val_conf_matrix_50[1][0])
         print("train/threshold: ", 50)
         print("train/confusion_matrix_50: ", train_conf_matrix_50)
         print("train/sensitivity: ", train_sensitivity_50)
