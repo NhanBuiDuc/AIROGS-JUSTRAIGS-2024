@@ -111,9 +111,9 @@ class trainer_base():
         #     checkpoint_path)
         # self.model = checkpoint
         self.model.to(self.device)
-        self.optimizer = optim.Adagrad(self.model.parameters(), lr=0.0001)
+        self.optimizer = optim.Adam(self.model.parameters(), lr=0.0001)
         self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-            self.optimizer, mode='min', factor=0.1, patience=10, threshold=0.00001, threshold_mode='rel', cooldown=3, min_lr=0, eps=1e-08)
+            self.optimizer, mode='min', factor=0.1, patience=10)
 
     def train_loop(self):
 
