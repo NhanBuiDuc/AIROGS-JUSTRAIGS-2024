@@ -101,8 +101,8 @@ class trainer_base():
         self.val_Y_list = []
         self.val_current_best_sensitivity = 0.0
         self.patient_count = 0
-        self.model = swin_v2_b(weights=None, progress=True,
-                               num_classes=1)
+        self.model = mobilenet_v3_large(weights=None, progress=True,
+                                        num_classes=1)
         # checkpoint_path = 'logs/logs_seed_42_fold_0_epoch_6.pth'
 
         # # Load the model state dictionary from the checkpoint
