@@ -87,9 +87,9 @@ class trainer_base():
         self.train_gt_path = self.train_gt_path.replace("'", '"')
 
         self.prepare_data(kfold_index, kfold_seed)
-        # self.loss_fn = torch.nn.BCELoss()
-        self.loss_fn = SpecificityLoss(
-            specificity=0.95, alpha=1.5, positive_confidence=0.8, device="cuda")
+        self.loss_fn = torch.nn.BCELoss()
+        # self.loss_fn = SpecificityLoss(
+        #     specificity=0.95, alpha=1.5, positive_confidence=0.8, device="cuda")
         self.desired_specificity = 0.95
         self.early_stop_max_patient = early_stop_max_patient
         self.logger = None
